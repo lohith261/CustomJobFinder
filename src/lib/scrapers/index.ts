@@ -5,6 +5,8 @@ import { RemoteOKScraper } from "./remoteok";
 import { RemotiveScraper } from "./remotive";
 import { ArbeitnowScraper } from "./arbeitnow";
 import { JobicyScraper } from "./jobicy";
+import { TheMuseScraper } from "./themuse";
+import { AdzunaScraper } from "./adzuna";
 import { deduplicateJobs } from "@/lib/dedup";
 
 /** All available scrapers. Add new scrapers here. */
@@ -14,6 +16,8 @@ function createScrapers(): Scraper[] {
     new RemotiveScraper(),
     new ArbeitnowScraper(),
     new JobicyScraper(),
+    new TheMuseScraper(),
+    new AdzunaScraper(), // auto-disables when ADZUNA_APP_ID / ADZUNA_API_KEY are not set
   ];
   // Mock scraper only runs in development to avoid polluting production data
   if (process.env.NODE_ENV !== "production") {
