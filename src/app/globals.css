@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+}
+
+@layer components {
+  .score-badge {
+    @apply inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-bold;
+  }
+  .score-high {
+    @apply bg-emerald-100 text-emerald-800;
+  }
+  .score-medium {
+    @apply bg-amber-100 text-amber-800;
+  }
+  .score-low {
+    @apply bg-red-100 text-red-800;
+  }
+  .tag {
+    @apply inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600;
+  }
+  .tag-remote {
+    @apply bg-blue-50 text-blue-700;
+  }
+  .tag-hybrid {
+    @apply bg-purple-50 text-purple-700;
+  }
+  .tag-onsite {
+    @apply bg-orange-50 text-orange-700;
+  }
+}

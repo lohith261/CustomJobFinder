@@ -1,0 +1,129 @@
+"use client";
+
+interface Job {
+  id: string;
+  title: string;
+  company: string;
+  location: string | null;
+  locationType: string | null;
+  url: string;
+  source: string;
+  description: string | null;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  salaryCurrency: string | null;
+  experienceLevel: string | null;
+  tags: string[];
+  postedAt: string | null;
+  matchScore: number;
+  status: string;
+}
+
+interface JobDetailProps {
+  job: Job;
+  onStatusChange: (id: string, status: string) => void;
+}
+
+export function JobDetail({ job, onStatusChange }: JobDetailProps) {
+  return (
+    <div className="border-t border-gray-100 bg-gray-50/50 p-5 space-y-4">
+      {job.description && (
+        <div>
+          <h4 className="text-sm font-semibold text-gray-900 mb-2">
+            Job Description
+          </h4>
+          <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto pr-2">
+            {job.description}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-4 text-sm">
+        {job.experienceLevel && (
+          <div>
+            <span className="font-medium text-gray-700">Experience: </span>
+            <span className="text-gray-600">{job.experienceLevel}</span>
+          </div>
+        )}
+        {job.locationType && (
+          <div>
+            <span className="font-medium text-gray-700">Work Type: </span>
+            <span className="text-gray-600 capitalize">{job.locationType}</span>
+          </div>
+        )}
+        {(job.salaryMin || job.salaryMax) && (
+          <div>
+            <span className="font-medium text-gray-700">Salary: </span>
+            <span className="text-gray-600">
+              {job.salaryCurrency || "USD"}{" "}
+              {job.salaryMin ? `${(job.salaryMin / 1000).toFixed(0)}k` : "?"} -{" "}
+              {job.salaryMax ? `${(job.salaryMax / 1000).toFixed(0)}k` : "?"}
+            </span>
+          </div>
+        )}
+        <div>
+          <span className="font-medium text-gray-700">Source: </span>
+          <span className="text-gray-600">{job.source}</span>
+        </div>
+      </div>
+
+      {job.tags.length > 0 && (
+        <div>
+          <h4 className="text-sm font-semibold text-gray-900 mb-2">Skills & Tags</h4>
+          <div className="flex flex-wrap gap-1.5">
+            {job.tags.map((tag) => (
+              <span key={tag} className="tag">{tag}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center gap-3 pt-2">
+        <a
+          href={job.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+        >
+          View Original
+          <ExternalLinkIcon className="h-3.5 w-3.5" />
+        </a>
+
+        <button
+          onClick={() =>
+            onStatusChange(job.id, job.status === "saved" ? "new" : "saved")
+          }
+          className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+            job.status === "saved"
+              ? "border-indigo-200 bg-indigo-50 text-indigo-700"
+              : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+          }`}
+        >
+          {job.status === "saved" ? "Saved" : "Save"}
+        </button>
+
+        <button
+          onClick={() => onStatusChange(job.id, "archived")}
+          className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          Archive
+        </button>
+
+        <button
+          onClick={() => onStatusChange(job.id, "dismissed")}
+          className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+        >
+          Dismiss
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ExternalLinkIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+    </svg>
+  );
+}

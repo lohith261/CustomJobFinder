@@ -1,0 +1,284 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { TagInput } from "@/components/TagInput";
+
+interface ConfigData {
+  id?: string;
+  titles: string[];
+  locations: string[];
+  locationType: string;
+  experienceLevel: string;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  companySize: string;
+  industries: string[];
+  includeKeywords: string[];
+  excludeKeywords: string[];
+  blacklistedCompanies: string[];
+}
+
+const defaultConfig: ConfigData = {
+  titles: [],
+  locations: [],
+  locationType: "any",
+  experienceLevel: "",
+  salaryMin: null,
+  salaryMax: null,
+  companySize: "",
+  industries: [],
+  includeKeywords: [],
+  excludeKeywords: [],
+  blacklistedCompanies: [],
+};
+
+export default function SettingsPage() {
+  const [config, setConfig] = useState<ConfigData>(defaultConfig);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((data) => {
+        setConfig({
+          ...defaultConfig,
+          ...data,
+          experienceLevel: data.experienceLevel ?? "",
+          companySize: data.companySize ?? "",
+          locationType: data.locationType ?? "any",
+          salaryMin: data.salaryMin ?? null,
+          salaryMax: data.salaryMax ?? null,
+        });
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await fetch("/api/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error("Save failed:", err);
+    }
+    setSaving(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 max-w-3xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Search Configuration
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Configure your job search criteria
+          </p>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className={`rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors ${
+            saved
+              ? "bg-emerald-600"
+              : "bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+          }`}
+        >
+          {saved ? "Saved!" : saving ? "Saving..." : "Save Configuration"}
+        </button>
+      </div>
+
+      <div className="space-y-8">
+        <Section title="Job Titles" description="Add the job titles you're interested in">
+          <TagInput
+            tags={config.titles}
+            onChange={(titles) => setConfig({ ...config, titles })}
+            placeholder="e.g., Software Engineer, Frontend Developer..."
+          />
+        </Section>
+
+        <Section title="Location Preferences" description="Set your location and work type preferences">
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              {["any", "remote", "hybrid", "onsite"].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setConfig({ ...config, locationType: type })}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium capitalize transition-colors ${
+                    config.locationType === type
+                      ? "bg-indigo-100 text-indigo-700 border border-indigo-200"
+                      : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+            <TagInput
+              tags={config.locations}
+              onChange={(locations) => setConfig({ ...config, locations })}
+              placeholder="Add cities, e.g., San Francisco, New York..."
+            />
+          </div>
+        </Section>
+
+        <Section title="Experience Level" description="Select your experience level">
+          <select
+            value={config.experienceLevel ?? ""}
+            onChange={(e) =>
+              setConfig({ ...config, experienceLevel: e.target.value })
+            }
+            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          >
+            <option value="">Any Level</option>
+            <option value="intern">Intern</option>
+            <option value="junior">Junior (0-2 years)</option>
+            <option value="mid">Mid-Level (2-5 years)</option>
+            <option value="senior">Senior (5-10 years)</option>
+            <option value="lead">Lead / Staff</option>
+            <option value="principal">Principal / Director</option>
+          </select>
+        </Section>
+
+        <Section title="Salary Range" description="Set your desired salary range (annual, USD)">
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <label className="text-xs text-gray-500 mb-1 block">Minimum</label>
+              <input
+                type="number"
+                placeholder="e.g., 80000"
+                value={config.salaryMin ?? ""}
+                onChange={(e) =>
+                  setConfig({
+                    ...config,
+                    salaryMin: e.target.value ? parseInt(e.target.value) : null,
+                  })
+                }
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+              />
+            </div>
+            <span className="text-gray-400 mt-5">to</span>
+            <div className="flex-1">
+              <label className="text-xs text-gray-500 mb-1 block">Maximum</label>
+              <input
+                type="number"
+                placeholder="e.g., 200000"
+                value={config.salaryMax ?? ""}
+                onChange={(e) =>
+                  setConfig({
+                    ...config,
+                    salaryMax: e.target.value ? parseInt(e.target.value) : null,
+                  })
+                }
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+              />
+            </div>
+          </div>
+        </Section>
+
+        <Section title="Company Size" description="Preferred company size">
+          <select
+            value={config.companySize ?? ""}
+            onChange={(e) =>
+              setConfig({ ...config, companySize: e.target.value })
+            }
+            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          >
+            <option value="">Any Size</option>
+            <option value="startup">Startup (1-50)</option>
+            <option value="small">Small (50-200)</option>
+            <option value="medium">Medium (200-1000)</option>
+            <option value="large">Large (1000-10000)</option>
+            <option value="enterprise">Enterprise (10000+)</option>
+          </select>
+        </Section>
+
+        <Section title="Industries" description="Industries you're interested in">
+          <TagInput
+            tags={config.industries}
+            onChange={(industries) => setConfig({ ...config, industries })}
+            placeholder="e.g., Fintech, Healthcare, SaaS..."
+          />
+        </Section>
+
+        <Section title="Include Keywords" description="Keywords that should appear in job descriptions">
+          <TagInput
+            tags={config.includeKeywords}
+            onChange={(includeKeywords) =>
+              setConfig({ ...config, includeKeywords })
+            }
+            placeholder="e.g., React, TypeScript, Node.js..."
+          />
+        </Section>
+
+        <Section title="Exclude Keywords" description="Keywords to filter out from results">
+          <TagInput
+            tags={config.excludeKeywords}
+            onChange={(excludeKeywords) =>
+              setConfig({ ...config, excludeKeywords })
+            }
+            placeholder="e.g., PHP, WordPress, Clearance required..."
+          />
+        </Section>
+
+        <Section title="Blacklisted Companies" description="Companies you want to exclude from results">
+          <TagInput
+            tags={config.blacklistedCompanies}
+            onChange={(blacklistedCompanies) =>
+              setConfig({ ...config, blacklistedCompanies })
+            }
+            placeholder="Add company names to exclude..."
+          />
+        </Section>
+      </div>
+
+      <div className="mt-8 flex justify-end">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className={`rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors ${
+            saved
+              ? "bg-emerald-600"
+              : "bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+          }`}
+        >
+          {saved ? "Saved!" : saving ? "Saving..." : "Save Configuration"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Section({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-5">
+      <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+      <p className="text-xs text-gray-500 mb-3">{description}</p>
+      {children}
+    </div>
+  );
+}

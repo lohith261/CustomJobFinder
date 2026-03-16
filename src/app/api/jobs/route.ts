@@ -1,0 +1,77 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
+import { serializeJob } from "@/lib/json-arrays";
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const status = searchParams.get("status");
+  const search = searchParams.get("search");
+  const source = searchParams.get("source");
+  const sortBy = searchParams.get("sortBy") || "matchScore";
+  const sortOrder = searchParams.get("sortOrder") || "desc";
+  const minScore = searchParams.get("minScore");
+
+  const where: Prisma.JobWhereInput = {};
+
+  if (status && status !== "all") {
+    where.status = status;
+  }
+
+  if (!status || status === "all") {
+    where.status = { not: "dismissed" };
+  }
+
+  if (source) {
+    where.source = source;
+  }
+
+  if (minScore) {
+    where.matchScore = { gte: parseInt(minScore) };
+  }
+
+  if (search) {
+    where.OR = [
+      { title: { contains: search } },
+      { company: { contains: search } },
+      { location: { contains: search } },
+    ];
+  }
+
+  const validSortFields = ["matchScore", "createdAt", "postedAt"] as const;
+  const orderField = validSortFields.includes(sortBy as typeof validSortFields[number])
+    ? sortBy
+    : "matchScore";
+
+  const jobs = await prisma.job.findMany({
+    where,
+    orderBy: { [orderField]: sortOrder === "asc" ? "asc" : "desc" },
+    take: 100,
+  });
+
+  const [allCount, newCount, savedCount, appliedCount, archivedCount] =
+    await Promise.all([
+      prisma.job.count({ where: { status: { not: "dismissed" } } }),
+      prisma.job.count({ where: { status: "new" } }),
+      prisma.job.count({ where: { status: "saved" } }),
+      prisma.job.count({ where: { status: "applied" } }),
+      prisma.job.count({ where: { status: "archived" } }),
+    ]);
+
+  const sourcesRaw = await prisma.job.findMany({
+    select: { source: true },
+    distinct: ["source"],
+  });
+
+  return NextResponse.json({
+    jobs: jobs.map((j) => serializeJob(j as unknown as Record<string, unknown>)),
+    counts: {
+      all: allCount,
+      new: newCount,
+      saved: savedCount,
+      applied: appliedCount,
+      archived: archivedCount,
+    },
+    sources: sourcesRaw.map((s) => s.source),
+  });
+}

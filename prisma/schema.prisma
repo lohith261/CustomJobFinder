@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Job {
+  id              String   @id @default(cuid())
+  title           String
+  company         String
+  location        String?
+  locationType    String?
+  url             String
+  source          String
+  description     String?
+  salaryMin       Int?
+  salaryMax       Int?
+  salaryCurrency  String?  @default("USD")
+  experienceLevel String?
+  companySize     String?
+  industry        String?
+  tags            String   @default("[]")
+  postedAt        DateTime?
+  scrapedAt       DateTime @default(now())
+  matchScore      Int      @default(0)
+  status          String   @default("new")
+  companyInfoId   String?
+  companyInfo     CompanyInfo? @relation(fields: [companyInfoId], references: [id])
+  analyses        ResumeAnalysis[]
+  application     Application?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([title, company, source])
+  @@index([status])
+  @@index([matchScore])
+  @@index([createdAt])
+}
+
+model Resume {
+  id          String           @id @default(cuid())
+  name        String
+  fileName    String
+  textContent String
+  format      String
+  isPrimary   Boolean          @default(false)
+  wordCount   Int              @default(0)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  analyses    ResumeAnalysis[]
+}
+
+model ResumeAnalysis {
+  id              String   @id @default(cuid())
+  resumeId        String
+  resume          Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  jobId           String
+  job             Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  matchScore      Int
+  presentKeywords String   @default("[]")
+  missingKeywords String   @default("[]")
+  suggestions     String   @default("[]")
+  summary         String   @default("")
+  createdAt       DateTime @default(now())
+
+  @@unique([resumeId, jobId])
+}
+
+model SearchConfig {
+  id                   String   @id @default(cuid())
+  name                 String   @default("Default")
+  titles               String   @default("[]")
+  locations            String   @default("[]")
+  locationType         String?
+  experienceLevel      String?
+  salaryMin            Int?
+  salaryMax            Int?
+  companySize          String?
+  industries           String   @default("[]")
+  includeKeywords      String   @default("[]")
+  excludeKeywords      String   @default("[]")
+  blacklistedCompanies String   @default("[]")
+  isActive             Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Application {
+  id                String    @id @default(cuid())
+  jobId             String    @unique
+  job               Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  status            String    @default("bookmarked")
+  notes             String    @default("")
+  recruiterName     String    @default("")
+  recruiterEmail    String    @default("")
+  recruiterLinkedIn String    @default("")
+  followUpDate      DateTime?
+  appliedAt         DateTime?
+  timeline          String    @default("[]")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([status])
+}
+
+model CompanyInfo {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  size         String?
+  industry     String?
+  description  String?
+  fundingStage String?
+  website      String?
+  jobs         Job[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

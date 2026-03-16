@@ -1,0 +1,181 @@
+export interface RawJob {
+  title: string;
+  company: string;
+  location?: string;
+  locationType?: string;
+  url: string;
+  source: string;
+  description?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  salaryCurrency?: string;
+  experienceLevel?: string;
+  companySize?: string;
+  industry?: string;
+  tags?: string[];
+  postedAt?: Date;
+}
+
+export interface SearchConfigData {
+  titles: string[];
+  locations: string[];
+  locationType?: string;
+  experienceLevel?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  companySize?: string;
+  industries: string[];
+  includeKeywords: string[];
+  excludeKeywords: string[];
+  blacklistedCompanies: string[];
+}
+
+export interface JobFilters {
+  status?: string;
+  search?: string;
+  source?: string;
+  minScore?: number;
+  sortBy?: "matchScore" | "createdAt" | "postedAt";
+  sortOrder?: "asc" | "desc";
+}
+
+export interface TailorSuggestion {
+  original: string;
+  improved: string;
+  reason: string;
+}
+
+export interface ResumeData {
+  id: string;
+  name: string;
+  fileName: string;
+  format: string;
+  isPrimary: boolean;
+  wordCount: number;
+  createdAt: string;
+  updatedAt: string;
+  analysisCount?: number;
+}
+
+export interface ResumeAnalysisData {
+  id: string;
+  resumeId: string;
+  jobId: string;
+  matchScore: number;
+  presentKeywords: string[];
+  missingKeywords: string[];
+  suggestions: TailorSuggestion[];
+  summary: string;
+  createdAt: string;
+  job?: {
+    id: string;
+    title: string;
+    company: string;
+    location?: string;
+    locationType?: string;
+    matchScore: number;
+  };
+}
+
+export interface TailorInput {
+  resumeText: string;
+  jobTitle: string;
+  jobDescription: string;
+  jobTags: string[];
+}
+
+export interface TimelineEvent {
+  id: string;
+  type: "status_change" | "note_added" | "follow_up_set" | "recruiter_added" | "manual";
+  description: string;
+  timestamp: string;
+}
+
+export interface ApplicationData {
+  id: string;
+  jobId: string;
+  status: string;
+  notes: string;
+  recruiterName: string;
+  recruiterEmail: string;
+  recruiterLinkedIn: string;
+  followUpDate: string | null;
+  appliedAt: string | null;
+  timeline: TimelineEvent[];
+  createdAt: string;
+  updatedAt: string;
+  job: {
+    id: string;
+    title: string;
+    company: string;
+    location?: string;
+    locationType?: string;
+    matchScore: number;
+    salaryMin?: number;
+    salaryMax?: number;
+    salaryCurrency?: string;
+    url: string;
+    tags: string[];
+  };
+}
+
+export const KANBAN_COLUMNS = [
+  { status: "bookmarked", label: "Bookmarked", color: "indigo" },
+  { status: "applied",    label: "Applied",    color: "blue"   },
+  { status: "interview",  label: "Interview",  color: "amber"  },
+  { status: "offer",      label: "Offer",      color: "green"  },
+  { status: "rejected",   label: "Rejected",   color: "slate"  },
+] as const;
+
+export type KanbanStatus = typeof KANBAN_COLUMNS[number]["status"];
+
+// ─── Analytics ──────────────────────────────────────────────────────────────
+
+export interface FunnelStage {
+  status: string;
+  label: string;
+  count: number;
+  color: string;
+}
+
+export interface ScoreBucket {
+  bucket: string;
+  count: number;
+}
+
+export interface WeeklyTrend {
+  week: string;
+  avgScore: number;
+  jobCount: number;
+}
+
+export interface TopEntry {
+  name: string;
+  count: number;
+  avgScore: number;
+}
+
+export interface SourceConversion {
+  source: string;
+  totalJobs: number;
+  appliedCount: number;
+  avgScore: number;
+}
+
+export interface WeeklyActivity {
+  jobsScraped: number;
+  applicationsCreated: number;
+  interviewsScheduled: number;
+  avgMatchScore: number;
+}
+
+export interface AnalyticsData {
+  funnel: FunnelStage[];
+  scoreBuckets: ScoreBucket[];
+  weeklyTrend: WeeklyTrend[];
+  topTitles: TopEntry[];
+  topCompanies: TopEntry[];
+  sourceConversions: SourceConversion[];
+  weeklyActivity: WeeklyActivity;
+  generatedAt: string;
+}
