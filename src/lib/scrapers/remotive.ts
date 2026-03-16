@@ -90,6 +90,20 @@ function categoryMatches(job: RemotiveJob, config: SearchConfigData): boolean {
   return config.industries.some((industry) => category.includes(normalize(industry)));
 }
 
+function titleMatches(jobTitle: string, configTitles: string[]): boolean {
+  if (configTitles.length === 0) return true;
+  const jobWords = new Set(normalize(jobTitle).split(/\s+/));
+  return configTitles.some((candidate) => {
+    const candidateNorm = normalize(candidate);
+    const jobNorm = normalize(jobTitle);
+    // Substring match
+    if (jobNorm.includes(candidateNorm) || candidateNorm.includes(jobNorm)) return true;
+    // Word-level overlap (at least one meaningful word in common)
+    const candidateWords = candidateNorm.split(/\s+/).filter((w) => w.length > 2);
+    return candidateWords.some((w) => jobWords.has(w));
+  });
+}
+
 function matchesConfig(job: RawJob, config: SearchConfigData): boolean {
   if (
     config.blacklistedCompanies.some(
@@ -99,14 +113,7 @@ function matchesConfig(job: RawJob, config: SearchConfigData): boolean {
     return false;
   }
 
-  if (config.titles.length > 0) {
-    const title = normalize(job.title);
-    const matchedTitle = config.titles.some((candidate) => {
-      const normalizedTitle = normalize(candidate);
-      return title.includes(normalizedTitle) || normalizedTitle.includes(title);
-    });
-    if (!matchedTitle) return false;
-  }
+  if (!titleMatches(job.title, config.titles)) return false;
 
   if (config.locationType === "onsite") {
     return false;
@@ -205,33 +212,36 @@ export class RemotiveScraper implements Scraper {
   async scrape(config: SearchConfigData): Promise<ScraperResult> {
     const start = Date.now();
     const errors: string[] = [];
-    const jobs: RawJob[] = [];
     const seenUrls = new Set<string>();
+    const jobs: RawJob[] = [];
 
     const queries = buildQueries(config);
 
-    for (const query of queries) {
-      const params = new URLSearchParams();
-      params.set("limit", "50");
-      if (query) params.set("search", query);
-      const url = `${REMOTIVE_API_URL}?${params.toString()}`;
+    // Run all queries in parallel instead of sequentially
+    const results = await Promise.allSettled(
+      queries.map((query) => {
+        const params = new URLSearchParams();
+        params.set("limit", "100");
+        if (query) params.set("search", query);
+        return fetchJobs(`${REMOTIVE_API_URL}?${params.toString()}`);
+      })
+    );
 
-      try {
-        const data = await fetchJobs(url);
-        for (const item of data.jobs ?? []) {
-          if (seenUrls.has(item.url)) continue;
-          seenUrls.add(item.url);
-
-          if (!categoryMatches(item, config)) continue;
-
-          const mapped = mapRemotiveJob(item);
-          if (mapped && matchesConfig(mapped, config)) {
-            jobs.push(mapped);
-          }
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      if (result.status === "rejected") {
+        const message = result.reason instanceof Error ? result.reason.message : "Unknown Remotive error";
+        errors.push(`"${queries[i] || "default"}" query failed: ${message}`);
+        continue;
+      }
+      for (const item of result.value.jobs ?? []) {
+        if (seenUrls.has(item.url)) continue;
+        seenUrls.add(item.url);
+        if (!categoryMatches(item, config)) continue;
+        const mapped = mapRemotiveJob(item);
+        if (mapped && matchesConfig(mapped, config)) {
+          jobs.push(mapped);
         }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Unknown Remotive error";
-        errors.push(`${query || "default"} query failed: ${message}`);
       }
     }
 

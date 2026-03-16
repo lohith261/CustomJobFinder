@@ -3,11 +3,23 @@ import { Scraper, ScraperOrchestrationResult, ScraperResult } from "./types";
 import { MockScraper } from "./mock";
 import { RemoteOKScraper } from "./remoteok";
 import { RemotiveScraper } from "./remotive";
+import { ArbeitnowScraper } from "./arbeitnow";
+import { JobicyScraper } from "./jobicy";
 import { deduplicateJobs } from "@/lib/dedup";
 
 /** All available scrapers. Add new scrapers here. */
 function createScrapers(): Scraper[] {
-  return [new MockScraper(), new RemoteOKScraper(), new RemotiveScraper()];
+  const scrapers: Scraper[] = [
+    new RemoteOKScraper(),
+    new RemotiveScraper(),
+    new ArbeitnowScraper(),
+    new JobicyScraper(),
+  ];
+  // Mock scraper only runs in development to avoid polluting production data
+  if (process.env.NODE_ENV !== "production") {
+    scrapers.unshift(new MockScraper());
+  }
+  return scrapers;
 }
 
 /**

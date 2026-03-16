@@ -105,12 +105,15 @@ function matchesConfig(job: RawJob, config: SearchConfigData): boolean {
     return false;
   }
 
-  // Title matching
+  // Title matching — word-level overlap for better recall
   if (config.titles.length > 0) {
-    const titleLower = job.title.toLowerCase();
-    const hasMatch = config.titles.some((t) =>
-      titleLower.includes(t.toLowerCase())
-    );
+    const jobWords = new Set(job.title.toLowerCase().split(/\s+/));
+    const hasMatch = config.titles.some((t) => {
+      const tNorm = t.toLowerCase();
+      const jobNorm = job.title.toLowerCase();
+      if (jobNorm.includes(tNorm) || tNorm.includes(jobNorm)) return true;
+      return tNorm.split(/\s+/).filter((w) => w.length > 2).some((w) => jobWords.has(w));
+    });
     if (!hasMatch) return false;
   }
 
