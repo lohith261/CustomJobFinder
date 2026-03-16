@@ -2,11 +2,12 @@ import { SearchConfigData } from "@/types";
 import { Scraper, ScraperOrchestrationResult, ScraperResult } from "./types";
 import { MockScraper } from "./mock";
 import { RemoteOKScraper } from "./remoteok";
+import { RemotiveScraper } from "./remotive";
 import { deduplicateJobs } from "@/lib/dedup";
 
 /** All available scrapers. Add new scrapers here. */
 function createScrapers(): Scraper[] {
-  return [new MockScraper(), new RemoteOKScraper()];
+  return [new MockScraper(), new RemoteOKScraper(), new RemotiveScraper()];
 }
 
 /**

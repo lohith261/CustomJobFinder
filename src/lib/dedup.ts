@@ -18,6 +18,9 @@ function dedupKey(job: RawJob): string {
 function normalizeString(s: string): string {
   return s
     .toLowerCase()
+    .replace(/\b(next\.js|nextjs)\b/g, "nextjs")
+    .replace(/\b(node\.js|nodejs)\b/g, "nodejs")
+    .replace(/\bfull[-\s]?stack\b/g, "fullstack")
     .replace(/[^\w\s]/g, "") // remove punctuation
     .replace(/\s+/g, " ") // collapse whitespace
     .trim();
@@ -69,6 +72,26 @@ function selectPreferred(existing: RawJob, candidate: RawJob): RawJob {
   return existing;
 }
 
+function mergeJobData(existing: RawJob, candidate: RawJob): RawJob {
+  const preferred = selectPreferred(existing, candidate);
+  const fallback = preferred === existing ? candidate : existing;
+
+  return {
+    ...preferred,
+    description: preferred.description ?? fallback.description,
+    location: preferred.location ?? fallback.location,
+    locationType: preferred.locationType ?? fallback.locationType,
+    salaryMin: preferred.salaryMin ?? fallback.salaryMin,
+    salaryMax: preferred.salaryMax ?? fallback.salaryMax,
+    salaryCurrency: preferred.salaryCurrency ?? fallback.salaryCurrency,
+    experienceLevel: preferred.experienceLevel ?? fallback.experienceLevel,
+    companySize: preferred.companySize ?? fallback.companySize,
+    industry: preferred.industry ?? fallback.industry,
+    tags: Array.from(new Set([...(preferred.tags ?? []), ...(fallback.tags ?? [])])),
+    postedAt: preferred.postedAt ?? fallback.postedAt,
+  };
+}
+
 /**
  * Score a job entry by how many optional fields are filled in.
  * Higher score means more complete data.
@@ -118,8 +141,8 @@ export function deduplicateJobs(jobs: RawJob[]): RawJob[] {
     if (!existing) {
       seen.set(key, { ...job });
     } else {
-      // Select the better entry and merge sources
-      const preferred = selectPreferred(existing, job);
+      // Merge the better entry with any missing data from the other duplicate.
+      const preferred = mergeJobData(existing, job);
       const mergedSource = mergeSources(existing.source, job.source);
       seen.set(key, { ...preferred, source: mergedSource });
     }
