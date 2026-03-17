@@ -10,16 +10,17 @@ A self-hosted, AI-powered job search assistant that scrapes live job listings, s
 
 1. [What It Does](#what-it-does)
 2. [Tech Stack](#tech-stack)
-3. [Architecture Overview](#architecture-overview)
-4. [Database Schema](#database-schema)
-5. [Scoring Engine](#scoring-engine)
-6. [AI Resume Analysis](#ai-resume-analysis)
-7. [API Reference](#api-reference)
-8. [Project Structure](#project-structure)
-9. [Local Development Setup](#local-development-setup)
-10. [Deploying to Vercel](#deploying-to-vercel)
-11. [Environment Variables](#environment-variables)
-12. [How Each Feature Works](#how-each-feature-works)
+3. [End-to-End User Guide](#end-to-end-user-guide)
+4. [Architecture Overview](#architecture-overview)
+5. [Database Schema](#database-schema)
+6. [Scoring Engine](#scoring-engine)
+7. [AI Resume Analysis](#ai-resume-analysis)
+8. [API Reference](#api-reference)
+9. [Project Structure](#project-structure)
+10. [Local Development Setup](#local-development-setup)
+11. [Deploying to Vercel](#deploying-to-vercel)
+12. [Environment Variables](#environment-variables)
+13. [How Each Feature Works](#how-each-feature-works)
 
 ---
 
@@ -27,11 +28,12 @@ A self-hosted, AI-powered job search assistant that scrapes live job listings, s
 
 | Module | Description |
 |--------|-------------|
-| **Opportunity Inbox** | Scrapes RemoteOK and Remotive for live jobs, scores each one instantly against your search config, and surfaces Quick Wins and Best Bets |
+| **Opportunity Inbox** | Scrapes RemoteOK, Remotive, Arbeitnow, Jobicy, The Muse, and Adzuna for live jobs, scores each one instantly against your search config, and surfaces Quick Wins and Best Bets |
 | **Application Tracker** | Kanban board (Bookmarked → Applied → Interview → Offer → Rejected) with recruiter notes, follow-up reminders, and a full event timeline |
 | **Resume Tailoring** | Upload PDF/DOCX/TXT resumes; run AI analysis against any job to get a match score, present/missing keywords, and rewrite suggestions |
 | **Analytics Dashboard** | Application funnel, match score distribution, weekly trend charts, top titles/companies, source conversions, and resume performance — all computed server-side from live data |
 | **Search Config** | Persist your target titles, locations, salary range, required keywords, excluded keywords, and blacklisted companies — feeds directly into the scoring engine |
+| **Source Status** | Real-time health dashboard showing which scraper APIs are online, their response latency, and whether optional sources like Adzuna are configured |
 
 ---
 
@@ -50,7 +52,247 @@ A self-hosted, AI-powered job search assistant that scrapes live job listings, s
 
 ---
 
-## Architecture Overview
+## End-to-End User Guide
+
+This guide walks through the full lifecycle of using Custom Job Finder — from the moment you open the app for the first time to tracking your first offer. Follow these steps in order for the best experience.
+
+---
+
+### Step 1 — Configure Your Job Search Preferences
+
+**Go to:** Sidebar → **Search Config** (`/settings`)
+
+Before scraping any jobs, tell the app what you are looking for. Everything in the app — scoring, filtering, and recommendations — is driven by this config.
+
+**Fill in each field:**
+
+| Field | What to enter | Example |
+|-------|--------------|---------|
+| **Job Titles** | Comma-separated list of roles you are targeting. The scorer does word-level matching, so "React Developer" also matches "Senior React Engineer". | `Frontend Developer, React Engineer, UI Engineer` |
+| **Location Type** | Choose `remote`, `hybrid`, or `onsite`. For remote-first searches, pick `remote`. | `remote` |
+| **Preferred Locations** | City or country names. Ignored when Location Type is `remote`. | `Bangalore, Mumbai, London` |
+| **Experience Level** | Your seniority. Exact-level matches score the highest; adjacent levels (e.g. mid for a senior role) get partial credit. | `mid` |
+| **Salary Min / Max** | Annual salary in USD (or your currency). Leave blank if you have no preference. Jobs whose salary range overlaps yours get bonus points. | `80000` / `140000` |
+| **Required Keywords** | Skills and technologies that a good job should mention. These directly boost match scores. | `React, TypeScript, GraphQL, Node.js` |
+| **Excluded Keywords** | Terms that indicate a bad fit. Every excluded keyword found in a job description subtracts 10 points. | `PHP, Perl, on-site only` |
+| **Blacklisted Companies** | Companies you never want to apply to. Jobs from these companies are forced to a match score of 0 regardless of fit. | `Bad Corp, Startup XYZ` |
+
+Click **Save Config**. You will see a confirmation. The config is now active and all subsequent scrapes and score calculations will use it.
+
+> **Tip:** You can update the config at any time. The next time you scrape or reload the inbox, scores are recalculated against the new config.
+
+---
+
+### Step 2 — Upload Your Resume
+
+**Go to:** Sidebar → **Resume Tailoring** (`/resumes`)
+
+Upload your resume so the app can run AI-powered match analysis later.
+
+1. Click the upload zone (or drag and drop a file onto it).
+2. Accepted formats: **PDF**, **DOCX**, **TXT**.
+3. The server extracts the plain text from your file immediately — this extracted text is what gets sent to the AI.
+4. Give the resume a label (e.g. "Full Stack Resume v2") to tell multiple versions apart.
+5. Mark one resume as **Primary** using the star icon. The primary resume is pre-selected when you run analysis.
+
+You can upload as many resumes as you like — one for each role type you are targeting (e.g. a frontend-focused version and a full-stack version).
+
+---
+
+### Step 3 — Scrape Live Job Listings
+
+**Go to:** Sidebar → **Opportunity Inbox** (`/`)
+
+1. Click the **Scrape Now** button in the top-right corner of the inbox.
+2. A loading indicator appears while the server fetches jobs from all configured sources in parallel (RemoteOK, Remotive, Arbeitnow, Jobicy, The Muse, and Adzuna if credentials are set).
+3. When scraping completes, a banner shows how many jobs were added and updated (e.g. "Added 47 new jobs, updated 12").
+4. The inbox refreshes automatically.
+
+**What happens during a scrape:**
+- Each scraper fetches its public API and normalises the results
+- Every job is run through the 6-factor scoring engine against your active config
+- Jobs are upserted — re-scraping the same job updates its score but never creates a duplicate
+
+> **Tip:** Scrape once a day to stay current. Job listings expire and new ones appear daily.
+
+**Seed data (optional):** If you want to explore the app without scraping live data, click **Seed Data** to load 25 realistic mock jobs instantly. These only appear in development — they are not added in production.
+
+---
+
+### Step 4 — Review the Opportunity Inbox
+
+**Go to:** Sidebar → **Opportunity Inbox** (`/`)
+
+The inbox organises jobs into three sections at the top:
+
+| Section | Meaning |
+|---------|---------|
+| **⚡ Quick Wins** | Match score ≥ 78 AND low effort to tailor. Apply to these first. |
+| **🎯 Best Bets** | Match score ≥ 65 with manageable effort. Your primary pipeline. |
+| **All Jobs** | Every other scraped job, sorted by score descending by default. |
+
+**Each job card shows:**
+- Colour-coded score badge — **green** (70+), **amber** (40–69), **red** (< 40)
+- Title, company, location, salary range, and posted date
+- Tags (technologies mentioned in the listing)
+- A **"WHY THIS MATCHED"** section that breaks down all six scoring factors and explains each one in plain English (e.g. "Exact title match with 'Frontend Developer' — 30 pts")
+
+**Filter and search the inbox:**
+- Use the **search bar** to filter by title or company name
+- Use the **Source** dropdown to see jobs only from one scraper
+- Use the **Score** slider to hide jobs below a threshold
+- Use **Status** tabs (New / Saved / All) to focus your view
+
+**Actions on each card:**
+
+| Button | What it does |
+|--------|-------------|
+| **Save** | Marks the job as saved (status → "saved"). It stays in the inbox but is visually distinguished. |
+| **Track** | Creates an Application record for this job in the Kanban tracker (status → "bookmarked"). |
+| **Dismiss** | Hides the job from the default inbox view (status → "dismissed"). Reversible via the "All" filter. |
+
+---
+
+### Step 5 — Analyse Your Resume Against a Job
+
+**Go to:** Sidebar → **Resume Tailoring** (`/resumes`)
+
+Once you have resumes uploaded and jobs scraped, run an AI analysis to see how well your resume matches a specific role.
+
+1. Click on any resume card to open the resume detail page.
+2. Click **Analyse Against Job**.
+3. A job picker modal opens — search for the job by title or company.
+4. Select a job and click **Run Analysis**.
+5. The server sends your resume text and the job description to the Grok AI model.
+6. Results appear within a few seconds:
+
+| Result | Description |
+|--------|-------------|
+| **Match Score** | 0–100. How well your resume matches this specific role. |
+| **Present Keywords** | Skills and technologies found in both your resume and the job description. |
+| **Missing Keywords** | Skills the job asks for that are not in your resume — your tailoring checklist. |
+| **Suggestions** | Specific, actionable rewrites the AI recommends (e.g. "Add a bullet about React performance optimisation to your most recent role"). |
+| **Summary** | One-paragraph overall assessment. |
+
+> **Tip:** Use the Missing Keywords list to decide whether to tailor your resume for this role or skip it. If 8+ critical skills are missing, it might be a stretch. If only 2–3 are missing and they are learnable, tailor and apply.
+
+Re-running analysis on the same resume + job overwrites the previous result — useful after you update your resume.
+
+---
+
+### Step 6 — Move Jobs into Your Application Pipeline
+
+**Go to:** Sidebar → **Application Tracker** (`/applications`)
+
+The tracker is a Kanban board with five columns representing the hiring pipeline:
+
+```
+Bookmarked → Applied → Interview → Offer → Rejected
+```
+
+**To add a job to the tracker:**
+- Click **Track** on any job card in the Opportunity Inbox → the job appears in the **Bookmarked** column automatically
+
+**To move a job through the pipeline:**
+1. Click on any application card to open the detail modal
+2. Use the **Status** dropdown inside the modal to move it to the next stage
+3. Or drag the card directly to the target column
+
+**When you move a job to "Applied":**
+- A **follow-up date** is automatically set to +5 business days from today (skipping weekends)
+- The follow-up date appears on the card with a colour-coded urgency badge:
+  - 🔴 **Overdue** — follow-up date has passed
+  - 🟡 **Due soon** — due within 2 days
+  - 🔵 **Upcoming** — more than 2 days away
+
+**Inside the application modal you can:**
+- Write free-text **notes** (interview prep notes, impressions, anything)
+- Log **recruiter contact info** — name, email, LinkedIn URL
+- Set or change the **follow-up date** manually
+- View the full **event timeline** — every status change, recruiter update, and note you have added, with timestamps
+
+---
+
+### Step 7 — Monitor Your Pipeline in Analytics
+
+**Go to:** Sidebar → **Analytics Dashboard** (`/analytics`)
+
+The dashboard gives you a bird's-eye view of your entire job search. All data is computed in real time from your actual applications and scraped jobs — nothing is mocked.
+
+**What you can see:**
+
+| Chart / Section | What it tells you |
+|----------------|-------------------|
+| **Application Funnel** | How many applications are at each stage. Spot bottlenecks (e.g. "I have 40 applications but 0 interviews"). |
+| **Match Score Distribution** | How well your scraped jobs match your config. A curve skewed left means your config is too strict — loosen keywords or add more titles. |
+| **Weekly Trend** | Jobs scraped per week and average score over the last 8 weeks. Useful for tracking search activity. |
+| **Top Job Titles** | Which job titles appear most often in your scraped results. Helps you validate that your target titles are real positions being hired for. |
+| **Top Companies Hiring** | Which companies appear most in your results. Useful for company research and targeted outreach. |
+| **Source Conversions** | How many jobs each scraper contributed vs. how many converted to applications vs. interviews. Tells you which sources are highest quality for you. |
+| **Resume Performance** | If you have run analyses, this ranks your resumes by average match score across all the jobs you have analysed them against. |
+| **Keyword Gaps** | Skills you are most frequently missing across all your resume analyses. This is your learning roadmap — the top 3–5 skills here are worth adding to your resume or studying. |
+
+---
+
+### Step 8 — Check That All Data Sources Are Working
+
+**Go to:** Sidebar → **Source Status** (`/status`)
+
+Before scraping, you can verify that all job APIs are reachable and responding.
+
+The page pings each scraper's API in real time and shows:
+
+| Status | Meaning |
+|--------|---------|
+| 🟢 **Online** | API responded successfully. The latency bar shows response time in ms. |
+| 🔴 **Error** | API returned an error or timed out. Jobs from this source will not appear in the next scrape. |
+| ⚫ **Disabled** | Source requires API credentials (e.g. Adzuna) that are not configured in your environment. |
+
+The summary bar at the top shows how many sources are currently online (e.g. "5 / 6 sources online").
+
+Click **Refresh** to re-run the health checks at any time.
+
+> **Tip:** If a source shows an error before scraping, you can still scrape — the orchestrator uses `Promise.allSettled` so one failing source never blocks the others.
+
+---
+
+### Recommended Daily Workflow
+
+Once the app is set up, a typical daily session looks like this:
+
+```
+1. Open Source Status → confirm all sources are online
+2. Open Opportunity Inbox → click Scrape Now
+3. Review Quick Wins and Best Bets — save or track anything interesting
+4. For each tracked job → open Resume Tailoring → run analysis → review Missing Keywords
+5. If applying → move the card to Applied in the Tracker → note recruiter info
+6. Check the Timeline on any Applied jobs whose follow-up date is today or overdue
+7. Glance at Analytics once a week to check funnel health and keyword gaps
+```
+
+---
+
+### Frequently Asked Questions
+
+**Q: The inbox is empty after scraping. What's wrong?**
+Your Search Config might be too strict. Try broadening your Required Keywords list, adding more job titles, or temporarily removing Excluded Keywords. You can also click **Seed Data** to verify the UI is working.
+
+**Q: All my jobs have low scores (< 40). Why?**
+The most common cause is Required Keywords — if you have listed 15 keywords and most jobs only mention 2–3, the keyword factor will score very low. Try reducing your list to the 4–5 most important skills.
+
+**Q: AI analysis just shows keyword matching results, not a proper AI analysis.**
+This means `GROK_API_KEY` is not set in your environment. The app falls back to keyword matching automatically. Add your key from [console.x.ai](https://console.x.ai) to `.env` (locally) or Vercel environment variables (production) and restart.
+
+**Q: I see "Disabled" for Adzuna on the Source Status page.**
+Adzuna requires a free API key. Register at [developer.adzuna.com](https://developer.adzuna.com), copy your Application ID and API Key, and add them as `ADZUNA_APP_ID` and `ADZUNA_API_KEY` in your environment variables. The scraper activates automatically when both are present.
+
+**Q: Can I use the app without Supabase?**
+No — a PostgreSQL database is required. Supabase's free tier is sufficient (500 MB, no card needed). The app also works with any other PostgreSQL provider (Railway, Neon, Render, self-hosted) — just update the connection strings in `.env`.
+
+**Q: I applied for a job outside the app. Can I still track it?**
+Yes. Go to the Opportunity Inbox, find the job (or scrape for it), click **Track** to create an application, then immediately open the modal and move it to **Applied**. Set the applied date manually if needed.
+
+---
 
 ```
 Browser
@@ -59,14 +301,15 @@ Browser
   ├── /applications        → Kanban Tracker (client component, fetches /api/applications)
   ├── /analytics           → Analytics Dashboard (client component, fetches /api/analytics)
   ├── /resumes             → Resume Tailoring (client component, fetches /api/resumes)
-  └── /settings            → Search Config (client component, fetches /api/config)
+  ├── /settings            → Search Config (client component, fetches /api/config)
+  └── /status              → Source Status (client component, fetches /api/scrapers/status)
         │
         ▼
   Next.js API Routes (src/app/api/**)
         │
         ├── src/lib/db.ts                  ← singleton Prisma client
         ├── src/lib/scoring.ts             ← 6-factor weighted scoring engine
-        ├── src/lib/scrapers/              ← RemoteOK + Remotive + mock adapters
+        ├── src/lib/scrapers/              ← RemoteOK, Remotive, Arbeitnow, Jobicy, The Muse, Adzuna, mock adapters
         ├── src/lib/ai/tailor.ts           ← Grok API call / keyword-match fallback
         ├── src/lib/follow-up.ts           ← follow-up date + urgency logic
         └── src/lib/serialize-application.ts  ← shared serialisation helpers
@@ -514,6 +757,8 @@ An earlier version of this project included `prisma db push` in `npm run build`.
 | `DATABASE_URL` | Yes | PostgreSQL pooled connection string (PgBouncer, port 6543). Used by the app at runtime for all queries. Must include `?pgbouncer=true`. |
 | `DIRECT_URL` | Yes | PostgreSQL direct connection string (port 5432). Used by Prisma CLI (`db push`, `migrate`) to run schema changes. Not used by the running app. |
 | `GROK_API_KEY` | No | xAI Grok API key. Enables AI-powered resume analysis. Without it, the app uses keyword matching as a fallback — all other features work normally. |
+| `ADZUNA_APP_ID` | No | Adzuna Application ID. Register free at [developer.adzuna.com](https://developer.adzuna.com). Without it, the Adzuna scraper is silently disabled. |
+| `ADZUNA_API_KEY` | No | Adzuna API Key. Required alongside `ADZUNA_APP_ID`. Both must be present for the scraper to activate. |
 
 ---
 
@@ -529,7 +774,7 @@ The page loads `GET /api/jobs` and groups results into three sections: Quick Win
 - **Priority label** — Quick Win, Best Bet, Stretch, or Low Priority
 - **Action buttons** — Save, Track (creates an Application record), Dismiss, Archive
 
-Clicking **Scrape Now** sends `POST /api/jobs/scrape`. The server loads the active search config, calls the RemoteOK and Remotive APIs in parallel, normalises each result into a `RawJob`, scores it, and upserts it. The `@@unique([title, company, source])` constraint means re-scraping never duplicates a listing.
+Clicking **Scrape Now** sends `POST /api/jobs/scrape`. The server loads the active search config, calls all enabled scrapers (RemoteOK, Remotive, Arbeitnow, Jobicy, The Muse, Adzuna) in parallel via `Promise.allSettled` — so one failing API never blocks the rest. Each result is normalised into a `RawJob`, scored, and upserted. The `@@unique([title, company, source])` constraint means re-scraping never duplicates a listing.
 
 ### Application Tracker (`/applications`)
 
@@ -580,3 +825,15 @@ Charts are rendered as pure SVG with inline Tailwind classes — no charting lib
 ### Search Config (`/settings`)
 
 A form that reads from and writes to the `SearchConfig` table. Changes take effect immediately on the next scrape or job list load — the scoring engine always reads the current active config at query time. All array fields (titles, locations, keywords, companies) are stored as JSON strings in the database and parsed/serialised by helper functions in `src/lib/json-arrays.ts`.
+
+### Source Status (`/status`)
+
+A live health dashboard for all scraper APIs. On page load, `GET /api/scrapers/status` is called — the server pings each API concurrently with a 6-second timeout and returns a status object per source. Each response includes:
+
+- **status** — `"online"`, `"error"`, or `"disabled"`
+- **latency** — response time in milliseconds (for online sources)
+- **error** — error message (for failed sources)
+
+The UI renders each source as a card with a coloured badge and a proportional latency bar. The summary bar at the top counts how many sources are currently reachable. A **Refresh** button re-triggers the health check without reloading the page.
+
+Adzuna shows **Disabled** instead of attempting a network call when `ADZUNA_APP_ID` or `ADZUNA_API_KEY` are absent from the environment, so the page is always honest about what is configured.
