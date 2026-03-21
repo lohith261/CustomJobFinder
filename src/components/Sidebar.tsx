@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 function InboxIcon({ className }: { className?: string }) {
   return (
@@ -75,6 +75,165 @@ function OutreachIcon({ className }: { className?: string }) {
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
     </svg>
+  );
+}
+
+interface SearchProfile {
+  id: string;
+  name: string;
+  isActive: boolean;
+  titles: string[];
+  locationType: string;
+  createdAt: string;
+}
+
+function SearchProfileSwitcher() {
+  const [profiles, setProfiles] = useState<SearchProfile[]>([]);
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const activeProfile = profiles.find((p) => p.isActive);
+
+  const fetchProfiles = async () => {
+    try {
+      const res = await fetch("/api/configs");
+      if (!res.ok) return;
+      const data = await res.json();
+      setProfiles(data);
+    } catch {
+      // Silently ignore — show nothing if fetch fails
+    }
+  };
+
+  useEffect(() => {
+    fetchProfiles();
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  const handleActivate = async (id: string) => {
+    setOpen(false);
+    setProfiles((prev) => prev.map((p) => ({ ...p, isActive: p.id === id })));
+    try {
+      await fetch(`/api/configs/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ activate: true }),
+      });
+    } catch {
+      // Revert on error
+      await fetchProfiles();
+    }
+  };
+
+  const handleCreate = async () => {
+    const name = window.prompt("Profile name:");
+    if (!name?.trim()) return;
+    try {
+      const res = await fetch("/api/configs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      if (!res.ok) return;
+      await fetchProfiles();
+    } catch {
+      // Silently ignore
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm("Delete this profile?")) return;
+    try {
+      const res = await fetch(`/api/configs/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data.error) alert(data.error);
+        return;
+      }
+      await fetchProfiles();
+    } catch {
+      // Silently ignore
+    }
+  };
+
+  if (profiles.length === 0) return null;
+
+  return (
+    <div className="border-b border-gray-200 px-3 py-2 flex-shrink-0" ref={dropdownRef}>
+      <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1 px-1">
+        Search Profile
+      </div>
+      <div className="relative">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center justify-between gap-2 rounded-md bg-gray-50 border border-gray-200 px-3 py-1.5 text-sm text-gray-800 hover:bg-gray-100 transition-colors"
+        >
+          <span className="truncate font-medium">{activeProfile?.name ?? "Select profile"}</span>
+          <svg
+            className={`h-4 w-4 flex-shrink-0 text-gray-500 transition-transform ${open ? "rotate-180" : ""}`}
+            fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+
+        {open && (
+          <div className="absolute left-0 right-0 top-full mt-1 z-50 rounded-md border border-gray-200 bg-white shadow-lg overflow-hidden">
+            {profiles.map((profile) => (
+              <div
+                key={profile.id}
+                onClick={() => !profile.isActive && handleActivate(profile.id)}
+                className={`flex items-center justify-between px-3 py-2 text-sm cursor-pointer transition-colors ${
+                  profile.isActive
+                    ? "bg-indigo-50 text-indigo-700 font-medium cursor-default"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <span className="truncate flex-1">{profile.name}</span>
+                {profile.isActive && (
+                  <svg className="h-3.5 w-3.5 flex-shrink-0 text-indigo-600 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+                  </svg>
+                )}
+                {!profile.isActive && profiles.length > 1 && (
+                  <button
+                    onClick={(e) => handleDelete(e, profile.id)}
+                    className="ml-1 flex-shrink-0 rounded p-0.5 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                    title="Delete profile"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+            <div
+              onClick={handleCreate}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 cursor-pointer border-t border-gray-100 transition-colors"
+            >
+              <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              New profile
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -174,6 +333,8 @@ export function Sidebar() {
           </svg>
         </button>
       </div>
+
+      <SearchProfileSwitcher />
 
       <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
         {navItems.map((item) => {
