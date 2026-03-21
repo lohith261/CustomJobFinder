@@ -1,12 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/db";
 import { runPipeline } from "@/lib/pipeline";
 
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
+  // Fail-closed: if CRON_SECRET is not configured, deny all requests
   const secret = process.env.CRON_SECRET;
+  if (!secret) {
+    console.error("[cron/daily] CRON_SECRET is not set — rejecting request");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  if (secret && authHeader !== `Bearer ${secret}`) {
+  const authHeader = req.headers.get("authorization") ?? "";
+  const expected = `Bearer ${secret}`;
+
+  // Timing-safe comparison to prevent secret enumeration via response-time
+  let authorized = false;
+  try {
+    const a = Buffer.from(authHeader);
+    const b = Buffer.from(expected);
+    authorized = a.length === b.length && timingSafeEqual(a, b);
+  } catch {
+    authorized = false;
+  }
+
+  if (!authorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -26,13 +44,13 @@ export async function GET(req: NextRequest) {
     const summary = results.map((r, i) => ({
       userId: users[i].id,
       status: r.status,
-      ...(r.status === "fulfilled" ? { runId: r.value.id } : { error: String((r as PromiseRejectedResult).reason) }),
+      ...(r.status === "fulfilled" ? { runId: r.value.id } : { error: "Pipeline error" }),
     }));
 
     console.log(`[cron/daily] Completed for ${users.length} users`);
     return NextResponse.json({ success: true, summary });
   } catch (err) {
     console.error("[cron/daily] Pipeline failed:", err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

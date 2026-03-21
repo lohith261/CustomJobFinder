@@ -39,7 +39,18 @@ export async function PATCH(
     const { userId } = auth;
 
     const body = await req.json();
-    const { status, confirmedApplied = false, appliedAt, followUpDate, ...rest } = body;
+    // Explicitly destructure all allowed fields — never spread arbitrary body fields into DB
+    const {
+      status,
+      confirmedApplied = false,
+      appliedAt,
+      followUpDate,
+      notes,
+      recruiterName,
+      recruiterEmail,
+      recruiterLinkedIn,
+    } = body;
+    const rest = { notes, recruiterName, recruiterEmail, recruiterLinkedIn };
 
     const app = await prisma.application.findFirst({
       where: { id: params.id, job: { userId } },
@@ -104,7 +115,12 @@ export async function PATCH(
       }))];
     }
 
-    const updateData: Record<string, unknown> = { ...rest, timeline: JSON.stringify(updatedTimeline) };
+    // Build update payload from the explicit allowlist only
+    const updateData: Record<string, unknown> = { timeline: JSON.stringify(updatedTimeline) };
+    if (notes !== undefined) updateData.notes = notes;
+    if (recruiterName !== undefined) updateData.recruiterName = recruiterName;
+    if (recruiterEmail !== undefined) updateData.recruiterEmail = recruiterEmail;
+    if (recruiterLinkedIn !== undefined) updateData.recruiterLinkedIn = recruiterLinkedIn;
     if (status) updateData.status = status;
     if (appliedAt !== undefined || (status === "applied" && !app.appliedAt)) {
       updateData.appliedAt = effectiveAppliedAt;
@@ -113,12 +129,19 @@ export async function PATCH(
       updateData.followUpDate = effectiveFollowUpDate;
     }
 
-    const updated = await prisma.application.update({
-      where: { id: params.id },
+    // updateMany supports relation filters — prevents writing to rows we don't own even in a race
+    await prisma.application.updateMany({
+      where: { id: params.id, job: { userId } },
       data: updateData,
+    });
+
+    // Re-fetch with full include after the write
+    const updated = await prisma.application.findFirst({
+      where: { id: params.id, job: { userId } },
       include: { job: { select: JOB_SELECT } },
     });
 
+    if (!updated) return NextResponse.json({ error: "Application not found" }, { status: 404 });
     return NextResponse.json(serializeApplication(updated as unknown as Record<string, unknown>));
   } catch (err) {
     console.error("PATCH /api/applications/[id] error:", err);

@@ -73,6 +73,6 @@ export async function POST() {
     });
   } catch (error) {
     console.error("Scrape error:", error);
-    return NextResponse.json({ error: "Scraping failed", details: String(error) }, { status: 500 });
+    return NextResponse.json({ error: "Scraping failed. Please try again." }, { status: 500 });
   }
 }

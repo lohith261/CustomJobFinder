@@ -19,6 +19,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result);
   } catch (err) {
     console.error("[POST /api/pipeline/run]", err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: "Pipeline failed. Please try again." }, { status: 500 });
   }
 }

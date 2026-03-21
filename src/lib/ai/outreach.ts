@@ -58,9 +58,46 @@ function extractMeta(html: string): { title: string; description: string; ogDesc
   };
 }
 
+/** Private/reserved IP ranges that must never be fetched (SSRF prevention) */
+const BLOCKED_IP_PATTERNS = [
+  /^localhost$/i,
+  /^127\./,
+  /^10\./,
+  /^172\.(1[6-9]|2\d|3[01])\./,
+  /^192\.168\./,
+  /^169\.254\./, // link-local / cloud metadata
+  /^::1$/,       // IPv6 loopback
+  /^fc00:/i,     // IPv6 private
+  /^fe80:/i,     // IPv6 link-local
+];
+
+function validatePublicHttpsUrl(raw: string): string {
+  // Force https:// prefix if missing scheme
+  const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(withScheme);
+  } catch {
+    throw new Error("Invalid company URL");
+  }
+
+  if (parsed.protocol !== "https:") {
+    throw new Error("Only https:// URLs are allowed");
+  }
+
+  const host = parsed.hostname.toLowerCase();
+  for (const pattern of BLOCKED_IP_PATTERNS) {
+    if (pattern.test(host)) {
+      throw new Error("URL points to a private or reserved address");
+    }
+  }
+
+  return parsed.toString();
+}
+
 async function fetchCompanyPage(url: string): Promise<{ rawText: string; meta: ReturnType<typeof extractMeta> }> {
-  // Normalise URL
-  const fullUrl = url.startsWith("http") ? url : `https://${url}`;
+  const fullUrl = validatePublicHttpsUrl(url);
 
   const res = await fetch(fullUrl, {
     headers: {
@@ -169,9 +206,15 @@ function parseResponse(text: string): OutreachResult {
 // ─── Fallback ──────────────────────────────────────────────────────────────────
 
 function generateFallback(input: OutreachInput, meta: { title: string }): OutreachResult {
-  const companyName = meta.title.split(/[-|–]/)[0].trim() || new URL(
-    input.companyUrl.startsWith("http") ? input.companyUrl : `https://${input.companyUrl}`
-  ).hostname.replace("www.", "");
+  let companyNameFallback = meta.title.split(/[-|–]/)[0].trim();
+  if (!companyNameFallback) {
+    try {
+      companyNameFallback = new URL(validatePublicHttpsUrl(input.companyUrl)).hostname.replace("www.", "");
+    } catch {
+      companyNameFallback = "the company";
+    }
+  }
+  const companyName = companyNameFallback;
 
   // Prefer profile name, fall back to first line of resume
   const nameLines = input.resumeText.split("\n").map((l) => l.trim()).filter(Boolean);
@@ -181,7 +224,7 @@ function generateFallback(input: OutreachInput, meta: { title: string }): Outrea
     companyName,
     companyInfo: {
       name: companyName,
-      description: "Company information could not be extracted. Please add your GROK_API_KEY for full AI-powered research.",
+      description: "Company information could not be extracted. AI-powered research is unavailable — please configure your AI API key in settings.",
       techStack: [],
       culture: [],
       industry: "",

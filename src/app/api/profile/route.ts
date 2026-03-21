@@ -46,6 +46,14 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File | null;
     if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
 
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "File too large. Maximum allowed size is 5 MB." },
+        { status: 413 }
+      );
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer());
     const { text } = await parsePdf(buffer);
 
