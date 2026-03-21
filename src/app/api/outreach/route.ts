@@ -47,8 +47,12 @@ export async function POST(req: NextRequest) {
     const resumeText = resume?.textContent ?? "";
     const resumeName = resume?.name ?? "";
 
+    // Fetch saved profile for candidate name
+    const profile = await prisma.userProfile.findUnique({ where: { id: "singleton" } });
+    const candidateName = profile?.name || undefined;
+
     // Research + generate
-    const result = await generateOutreachEmail({ companyUrl, resumeText, resumeName });
+    const result = await generateOutreachEmail({ companyUrl, resumeText, resumeName, candidateName });
 
     // Persist to DB
     const saved = await prisma.outreachEmail.create({

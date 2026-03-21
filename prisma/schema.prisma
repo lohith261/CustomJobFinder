@@ -169,6 +169,17 @@ model TailoredResume {
   @@index([jobId])
 }
 
+model UserProfile {
+  id        String   @id @default("singleton")
+  name      String   @default("")
+  email     String   @default("")
+  phone     String   @default("")
+  linkedin  String   @default("")
+  github    String   @default("")
+  location  String   @default("")
+  updatedAt DateTime @updatedAt
+}
+
 model CompanyInfo {
   id           String   @id @default(cuid())
   name         String   @unique

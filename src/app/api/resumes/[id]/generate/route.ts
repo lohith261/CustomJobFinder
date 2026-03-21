@@ -27,6 +27,9 @@ export async function POST(
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
+    // Fetch saved profile to overlay contact info
+    const profile = await prisma.userProfile.findUnique({ where: { id: "singleton" } });
+
     // Generate tailored resume via AI
     const resumeData = await generateTailoredResume({
       resumeText: resume.textContent,
@@ -35,6 +38,16 @@ export async function POST(
       jobTags: fromJsonArray(job.tags),
       jobCompany: job.company,
     });
+
+    // Overlay profile contact info (profile data takes precedence over AI extraction)
+    if (profile) {
+      if (profile.name) resumeData.contact.name = profile.name;
+      if (profile.email) resumeData.contact.email = profile.email;
+      if (profile.phone) resumeData.contact.phone = profile.phone;
+      if (profile.linkedin) resumeData.contact.linkedin = profile.linkedin;
+      if (profile.github) resumeData.contact.github = profile.github;
+      if (profile.location) resumeData.contact.location = profile.location;
+    }
 
     // Build LaTeX source
     const latexSource = buildLatex(resumeData);

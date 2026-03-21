@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { TagInput } from "@/components/TagInput";
+import Link from "next/link";
 
 interface ConfigData {
   id?: string;
@@ -37,6 +38,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     fetch("/api/config")
@@ -88,7 +90,11 @@ export default function SettingsPage() {
             Search Configuration
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Configure your job search criteria
+            Configure your job search criteria.{" "}
+            <Link href="/profile" className="text-indigo-600 hover:underline">
+              Update your profile
+            </Link>{" "}
+            to set your contact info.
           </p>
         </div>
         <button
@@ -227,25 +233,46 @@ export default function SettingsPage() {
           />
         </Section>
 
-        <Section title="Exclude Keywords" description="Keywords to filter out from results">
-          <TagInput
-            tags={config.excludeKeywords}
-            onChange={(excludeKeywords) =>
-              setConfig({ ...config, excludeKeywords })
-            }
-            placeholder="e.g., PHP, WordPress, Clearance required..."
-          />
-        </Section>
+        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+          <button
+            onClick={() => setShowAdvanced((v) => !v)}
+            className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+          >
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">Advanced Filters</h3>
+              <p className="text-xs text-gray-500">Exclude keywords and blacklist companies — optional</p>
+            </div>
+            <svg
+              className={`h-4 w-4 text-gray-400 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-        <Section title="Blacklisted Companies" description="Companies you want to exclude from results">
-          <TagInput
-            tags={config.blacklistedCompanies}
-            onChange={(blacklistedCompanies) =>
-              setConfig({ ...config, blacklistedCompanies })
-            }
-            placeholder="Add company names to exclude..."
-          />
-        </Section>
+          {showAdvanced && (
+            <div className="border-t border-gray-100 px-5 pb-5 pt-4 space-y-5">
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 mb-1">Exclude Keywords</h4>
+                <p className="text-xs text-gray-500 mb-2">Keywords to filter out from results</p>
+                <TagInput
+                  tags={config.excludeKeywords}
+                  onChange={(excludeKeywords) => setConfig({ ...config, excludeKeywords })}
+                  placeholder="e.g., PHP, WordPress, Clearance required..."
+                />
+              </div>
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 mb-1">Blacklisted Companies</h4>
+                <p className="text-xs text-gray-500 mb-2">Companies you want to exclude from results</p>
+                <TagInput
+                  tags={config.blacklistedCompanies}
+                  onChange={(blacklistedCompanies) => setConfig({ ...config, blacklistedCompanies })}
+                  placeholder="Add company names to exclude..."
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mt-8 flex justify-end">

@@ -19,6 +19,7 @@ export interface OutreachInput {
   companyUrl: string;
   resumeText: string;
   resumeName?: string;
+  candidateName?: string;
 }
 
 // ─── HTML scraping ────────────────────────────────────────────────────────────
@@ -172,8 +173,9 @@ function generateFallback(input: OutreachInput, meta: { title: string }): Outrea
     input.companyUrl.startsWith("http") ? input.companyUrl : `https://${input.companyUrl}`
   ).hostname.replace("www.", "");
 
+  // Prefer profile name, fall back to first line of resume
   const nameLines = input.resumeText.split("\n").map((l) => l.trim()).filter(Boolean);
-  const candidateName = nameLines[0] ?? "Your Name";
+  const candidateName = input.candidateName || nameLines[0] || "Your Name";
 
   return {
     companyName,
