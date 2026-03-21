@@ -12,14 +12,14 @@ async function callGrok(prompt: string): Promise<string> {
   const apiKey = process.env.GROK_API_KEY;
   if (!apiKey) throw new Error("GROK_API_KEY not set");
 
-  const res = await fetch("https://api.x.ai/v1/chat/completions", {
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "grok-3",
+      model: "llama-3.3-70b-versatile",
       max_tokens: 2048,
       messages: [{ role: "user", content: prompt }],
     }),
