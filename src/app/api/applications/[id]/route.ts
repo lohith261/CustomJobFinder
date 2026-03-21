@@ -65,7 +65,7 @@ export async function PATCH(
     if (status && status !== app.status) {
       const labels: Record<string, string> = {
         bookmarked: "Bookmarked", applied: "Applied", interview: "Interview",
-        offer: "Offer", rejected: "Rejected",
+        offer: "Offer", not_interested: "Not Interested", rejected: "Rejected",
       };
       const event: TimelineEvent = {
         id: randomUUID(),

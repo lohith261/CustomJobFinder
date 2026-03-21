@@ -20,6 +20,7 @@ const HEADER_STYLES: Record<string, string> = {
   blue:   "bg-blue-50 border-blue-200 text-blue-700",
   amber:  "bg-amber-50 border-amber-200 text-amber-700",
   green:  "bg-green-50 border-green-200 text-green-700",
+  rose:   "bg-rose-50 border-rose-200 text-rose-700",
   slate:  "bg-slate-50 border-slate-200 text-slate-600",
 };
 
@@ -28,15 +29,17 @@ const COUNT_STYLES: Record<string, string> = {
   blue:   "bg-blue-200 text-blue-800",
   amber:  "bg-amber-200 text-amber-800",
   green:  "bg-green-200 text-green-800",
+  rose:   "bg-rose-200 text-rose-800",
   slate:  "bg-slate-200 text-slate-700",
 };
 
 const EMPTY_ICONS: Record<string, string> = {
-  bookmarked: "🔖",
-  applied: "📨",
-  interview: "🤝",
-  offer: "🎉",
-  rejected: "📭",
+  bookmarked:    "🔖",
+  applied:       "📨",
+  interview:     "🤝",
+  offer:         "🎉",
+  not_interested: "🚫",
+  rejected:      "📭",
 };
 
 export default function KanbanColumn({

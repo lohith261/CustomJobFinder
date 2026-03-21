@@ -151,11 +151,12 @@ export interface ApplicationData {
 }
 
 export const KANBAN_COLUMNS = [
-  { status: "bookmarked", label: "Bookmarked", color: "indigo" },
-  { status: "applied",    label: "Applied",    color: "blue"   },
-  { status: "interview",  label: "Interview",  color: "amber"  },
-  { status: "offer",      label: "Offer",      color: "green"  },
-  { status: "rejected",   label: "Rejected",   color: "slate"  },
+  { status: "bookmarked",    label: "Bookmarked",    color: "indigo" },
+  { status: "applied",       label: "Applied",       color: "blue"   },
+  { status: "interview",     label: "Interview",     color: "amber"  },
+  { status: "offer",         label: "Offer",         color: "green"  },
+  { status: "not_interested", label: "Not Interested", color: "rose" },
+  { status: "rejected",      label: "Rejected",      color: "slate"  },
 ] as const;
 
 export type KanbanStatus = typeof KANBAN_COLUMNS[number]["status"];

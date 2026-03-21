@@ -30,13 +30,25 @@ interface Job {
 interface JobCardProps {
   job: Job;
   onStatusChange: (id: string, status: string) => void;
+  pinned?: boolean;
+  onTogglePin?: (id: string) => void;
+  note?: string;
+  onNoteChange?: (id: string, note: string) => void;
 }
 
-export function JobCard({ job, onStatusChange }: JobCardProps) {
+export function JobCard({
+  job,
+  onStatusChange,
+  pinned = false,
+  onTogglePin,
+  note = "",
+  onNoteChange,
+}: JobCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [tracking, setTracking] = useState(false);
   const [tracked, setTracked] = useState(false);
   const [trackError, setTrackError] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
   const router = useRouter();
 
   async function handleTrack(e: React.MouseEvent) {
@@ -101,6 +113,7 @@ export function JobCard({ job, onStatusChange }: JobCardProps) {
         : "tag-onsite";
 
   const salary = formatSalary(job.salaryMin, job.salaryMax, job.salaryCurrency);
+  const hasNote = note.trim().length > 0;
 
   return (
     <div className="group rounded-xl border border-gray-200 bg-white transition-all hover:border-gray-300 hover:shadow-md">
@@ -111,10 +124,61 @@ export function JobCard({ job, onStatusChange }: JobCardProps) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <ScoreBadge score={job.matchScore} />
+              {/* Score badge with breakdown tooltip */}
+              <div className="relative inline-flex items-center gap-1">
+                <ScoreBadge score={job.matchScore} />
+                {job.matchDetails && (
+                  <>
+                    <span
+                      className="cursor-default select-none text-gray-400 text-xs leading-none"
+                      onMouseEnter={() => setShowTooltip(true)}
+                      onMouseLeave={() => setShowTooltip(false)}
+                    >
+                      &#9432;
+                    </span>
+                    {showTooltip && (
+                      <div
+                        className="absolute left-0 top-full mt-1.5 z-50 w-56 max-w-xs rounded-lg border border-gray-200 bg-white shadow-lg p-2.5"
+                        onMouseEnter={() => setShowTooltip(true)}
+                        onMouseLeave={() => setShowTooltip(false)}
+                      >
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                          Match breakdown
+                        </p>
+                        <div className="space-y-1">
+                          {job.matchDetails.breakdown.map((item) => (
+                            <div
+                              key={item.key}
+                              className="flex items-center justify-between gap-2 text-xs"
+                            >
+                              <span className="text-gray-700 truncate">{item.label}</span>
+                              <span
+                                className={`font-semibold flex-shrink-0 ${
+                                  item.score > 0
+                                    ? "text-emerald-600"
+                                    : "text-red-500"
+                                }`}
+                              >
+                                {item.score > 0 ? "+" : ""}
+                                {item.score}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
               <span className="tag text-[10px] uppercase tracking-wide">{job.source}</span>
               {job.status === "new" && (
                 <span className="inline-flex h-2 w-2 rounded-full bg-blue-500" />
+              )}
+              {hasNote && (
+                <span
+                  className="inline-flex h-2 w-2 rounded-full bg-yellow-400 flex-shrink-0"
+                  title="Has a quick note"
+                />
               )}
             </div>
             <h3 className="text-base font-semibold text-gray-900 truncate">
@@ -122,11 +186,30 @@ export function JobCard({ job, onStatusChange }: JobCardProps) {
             </h3>
             <p className="text-sm text-gray-600 mt-0.5">{job.company}</p>
           </div>
-          <ChevronIcon
-            className={`h-5 w-5 text-gray-400 transition-transform flex-shrink-0 ${
-              expanded ? "rotate-180" : ""
-            }`}
-          />
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {onTogglePin && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTogglePin(job.id);
+                }}
+                className={`p-1 rounded transition-colors ${
+                  pinned
+                    ? "text-yellow-400 hover:text-yellow-500"
+                    : "text-gray-300 hover:text-yellow-400"
+                }`}
+                title={pinned ? "Unpin job" : "Pin job"}
+                aria-label={pinned ? "Unpin job" : "Pin job"}
+              >
+                <span className="text-base leading-none">{pinned ? "★" : "☆"}</span>
+              </button>
+            )}
+            <ChevronIcon
+              className={`h-5 w-5 text-gray-400 transition-transform ${
+                expanded ? "rotate-180" : ""
+              }`}
+            />
+          </div>
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
@@ -226,7 +309,7 @@ export function JobCard({ job, onStatusChange }: JobCardProps) {
           </button>
           <QuickAction
             label="Dismiss"
-            onClick={() => onStatusChange(job.id, "dismissed")}
+            onClick={() => onStatusChange(job.id, "not_interested")}
           />
           <QuickAction
             label="Archive"
@@ -236,7 +319,31 @@ export function JobCard({ job, onStatusChange }: JobCardProps) {
       )}
 
       {expanded && (
-        <JobDetail job={job} onStatusChange={onStatusChange} />
+        <>
+          <JobDetail job={job} onStatusChange={onStatusChange} />
+          {onNoteChange && (
+            <div
+              className="border-t border-gray-100 px-5 py-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <label
+                htmlFor={`note-${job.id}`}
+                className="flex items-center gap-1.5 text-xs font-medium text-gray-600 mb-1.5 cursor-pointer select-none"
+              >
+                <span aria-hidden="true">&#128221;</span>
+                Quick note
+              </label>
+              <textarea
+                id={`note-${job.id}`}
+                rows={2}
+                value={note}
+                onChange={(e) => onNoteChange(job.id, e.target.value)}
+                placeholder="Add a quick note about this job…"
+                className="w-full resize-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 placeholder-gray-400 focus:border-indigo-300 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-200 transition-colors"
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

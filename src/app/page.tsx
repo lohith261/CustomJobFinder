@@ -43,6 +43,8 @@ function getScoreWindow(view: QuickView): { minScore?: number; maxScore?: number
 }
 
 const CONFIG_BANNER_KEY = "config-banner-dismissed";
+const PINNED_JOBS_KEY = "pinned-jobs";
+const JOB_NOTES_KEY = "job-notes";
 
 export default function OpportunityInbox() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -55,6 +57,22 @@ export default function OpportunityInbox() {
   const [jobCounts, setJobCounts] = useState<Record<string, number>>({});
   const [sources, setSources] = useState<string[]>([]);
   const [showConfigBanner, setShowConfigBanner] = useState(false);
+  const [pinnedIds, setPinnedIds] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      return JSON.parse(localStorage.getItem(PINNED_JOBS_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  });
+  const [jobNotes, setJobNotes] = useState<Record<string, string>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      return JSON.parse(localStorage.getItem(JOB_NOTES_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  });
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
@@ -139,21 +157,47 @@ export default function OpportunityInbox() {
   const bestBets = jobs
     .filter((job) => job.priorityInsights?.recommendation === "best-bet")
     .slice(0, 3);
-  const displayedJobs = jobs.filter((job) => {
-    if (activeQuickView === "quick-wins") {
-      return job.priorityInsights?.recommendation === "quick-win";
-    }
-    if (activeQuickView === "stretch") {
-      return job.priorityInsights?.recommendation === "stretch";
-    }
-    return true;
-  });
+  const displayedJobs = jobs
+    .filter((job) => {
+      if (activeQuickView === "quick-wins") {
+        return job.priorityInsights?.recommendation === "quick-win";
+      }
+      if (activeQuickView === "stretch") {
+        return job.priorityInsights?.recommendation === "stretch";
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      const aPinned = pinnedIds.includes(a.id) ? 1 : 0;
+      const bPinned = pinnedIds.includes(b.id) ? 1 : 0;
+      return bPinned - aPinned;
+    });
 
   const handleDismissBanner = () => {
     setShowConfigBanner(false);
     if (typeof window !== "undefined") {
       localStorage.setItem(CONFIG_BANNER_KEY, "1");
     }
+  };
+
+  const handleTogglePin = (id: string) => {
+    setPinnedIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id];
+      if (typeof window !== "undefined") {
+        localStorage.setItem(PINNED_JOBS_KEY, JSON.stringify(next));
+      }
+      return next;
+    });
+  };
+
+  const handleNoteChange = (id: string, note: string) => {
+    setJobNotes((prev) => {
+      const next = { ...prev, [id]: note };
+      if (typeof window !== "undefined") {
+        localStorage.setItem(JOB_NOTES_KEY, JSON.stringify(next));
+      }
+      return next;
+    });
   };
 
   return (
@@ -268,6 +312,10 @@ export default function OpportunityInbox() {
                 key={job.id}
                 job={job}
                 onStatusChange={handleStatusChange}
+                pinned={pinnedIds.includes(job.id)}
+                onTogglePin={handleTogglePin}
+                note={jobNotes[job.id] || ""}
+                onNoteChange={handleNoteChange}
               />
             ))}
           </div>

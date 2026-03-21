@@ -28,8 +28,8 @@ function ScoreBadge({ score }: { score: number }) {
 }
 
 export default function TailoredResumePanel({ tailored, onRegenerate, regenerating }: Props) {
-  const [tab, setTab] = useState<"preview" | "latex">("preview");
   const [copied, setCopied] = useState(false);
+  const [latexOpen, setLatexOpen] = useState(false);
   const overleafFormRef = useRef<HTMLFormElement>(null);
   const { resumeData, latexSource, projectedScore, job } = tailored;
 
@@ -148,172 +148,178 @@ export default function TailoredResumePanel({ tailored, onRegenerate, regenerati
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-gray-200">
-        {(["preview", "latex"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-5 py-2.5 text-sm font-medium capitalize transition-colors ${
-              tab === t
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {t === "latex" ? "LaTeX Source" : "Preview"}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab content */}
+      {/* Resume Preview */}
       <div className="p-5">
-        {tab === "preview" ? (
-          <div className="space-y-5 text-sm text-gray-800">
-            {/* Contact */}
-            <div className="text-center pb-4 border-b border-gray-100">
-              <h2 className="text-xl font-bold text-gray-900">{resumeData.contact.name}</h2>
-              <p className="text-gray-500 mt-1 text-xs flex flex-wrap gap-2 justify-center">
-                {[
-                  resumeData.contact.phone,
-                  resumeData.contact.email,
-                  resumeData.contact.linkedin,
-                  resumeData.contact.github,
-                  resumeData.contact.location,
-                ]
-                  .filter(Boolean)
-                  .map((item, i) => (
-                    <span key={i}>{item}</span>
-                  ))}
-              </p>
+        <div className="space-y-5 text-sm text-gray-800">
+          {/* Contact */}
+          <div className="text-center pb-4 border-b border-gray-100">
+            <h2 className="text-xl font-bold text-gray-900">{resumeData.contact.name}</h2>
+            <p className="text-gray-500 mt-1 text-xs flex flex-wrap gap-2 justify-center">
+              {[
+                resumeData.contact.phone,
+                resumeData.contact.email,
+                resumeData.contact.linkedin,
+                resumeData.contact.github,
+                resumeData.contact.location,
+              ]
+                .filter(Boolean)
+                .map((item, i) => (
+                  <span key={i}>{item}</span>
+                ))}
+            </p>
+          </div>
+
+          {/* Summary */}
+          {resumeData.summary && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Summary</h3>
+              <p className="text-gray-700 leading-relaxed">{resumeData.summary}</p>
             </div>
+          )}
 
-            {/* Summary */}
-            {resumeData.summary && (
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Summary</h3>
-                <p className="text-gray-700 leading-relaxed">{resumeData.summary}</p>
+          {/* Skills */}
+          {allSkills.length > 0 && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Technical Skills</h3>
+              <div className="space-y-1">
+                {resumeData.skills.languages.length > 0 && (
+                  <p><span className="font-semibold">Languages:</span> {resumeData.skills.languages.join(", ")}</p>
+                )}
+                {resumeData.skills.frameworks.length > 0 && (
+                  <p><span className="font-semibold">Frameworks:</span> {resumeData.skills.frameworks.join(", ")}</p>
+                )}
+                {resumeData.skills.tools.length > 0 && (
+                  <p><span className="font-semibold">Tools & Platforms:</span> {resumeData.skills.tools.join(", ")}</p>
+                )}
+                {resumeData.skills.databases.length > 0 && (
+                  <p><span className="font-semibold">Databases:</span> {resumeData.skills.databases.join(", ")}</p>
+                )}
+                {resumeData.skills.other.length > 0 && (
+                  <p><span className="font-semibold">Other:</span> {resumeData.skills.other.join(", ")}</p>
+                )}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Skills */}
-            {allSkills.length > 0 && (
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Technical Skills</h3>
-                <div className="space-y-1">
-                  {resumeData.skills.languages.length > 0 && (
-                    <p><span className="font-semibold">Languages:</span> {resumeData.skills.languages.join(", ")}</p>
-                  )}
-                  {resumeData.skills.frameworks.length > 0 && (
-                    <p><span className="font-semibold">Frameworks:</span> {resumeData.skills.frameworks.join(", ")}</p>
-                  )}
-                  {resumeData.skills.tools.length > 0 && (
-                    <p><span className="font-semibold">Tools & Platforms:</span> {resumeData.skills.tools.join(", ")}</p>
-                  )}
-                  {resumeData.skills.databases.length > 0 && (
-                    <p><span className="font-semibold">Databases:</span> {resumeData.skills.databases.join(", ")}</p>
-                  )}
-                  {resumeData.skills.other.length > 0 && (
-                    <p><span className="font-semibold">Other:</span> {resumeData.skills.other.join(", ")}</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Experience */}
-            {resumeData.experience.length > 0 && (
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Experience</h3>
-                <div className="space-y-4">
-                  {resumeData.experience.map((exp, i) => (
-                    <div key={i}>
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-semibold">{exp.company}</p>
-                          <p className="text-gray-600 italic">{exp.title} · {exp.location}</p>
-                        </div>
-                        <p className="text-gray-500 text-xs whitespace-nowrap">{exp.startDate} – {exp.endDate}</p>
-                      </div>
-                      <ul className="mt-1.5 ml-4 list-disc space-y-1 text-gray-700">
-                        {exp.bullets.map((b, j) => <li key={j}>{b}</li>)}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Education */}
-            {resumeData.education.length > 0 && (
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Education</h3>
-                <div className="space-y-3">
-                  {resumeData.education.map((edu, i) => (
-                    <div key={i} className="flex items-start justify-between gap-2">
+          {/* Experience */}
+          {resumeData.experience.length > 0 && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Experience</h3>
+              <div className="space-y-4">
+                {resumeData.experience.map((exp, i) => (
+                  <div key={i}>
+                    <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="font-semibold">{edu.school}</p>
-                        <p className="text-gray-600 italic">
-                          {edu.degree} in {edu.field}
-                          {edu.gpa && ` · GPA: ${edu.gpa}`}
-                        </p>
-                        {edu.highlights.length > 0 && (
-                          <ul className="mt-1 ml-4 list-disc text-gray-600 text-xs">
-                            {edu.highlights.map((h, j) => <li key={j}>{h}</li>)}
-                          </ul>
-                        )}
+                        <p className="font-semibold">{exp.company}</p>
+                        <p className="text-gray-600 italic">{exp.title} · {exp.location}</p>
                       </div>
-                      <p className="text-gray-500 text-xs whitespace-nowrap">{edu.startDate} – {edu.endDate}</p>
+                      <p className="text-gray-500 text-xs whitespace-nowrap">{exp.startDate} – {exp.endDate}</p>
                     </div>
-                  ))}
-                </div>
+                    <ul className="mt-1.5 ml-4 list-disc space-y-1 text-gray-700">
+                      {exp.bullets.map((b, j) => <li key={j}>{b}</li>)}
+                    </ul>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Projects */}
-            {resumeData.projects.length > 0 && (
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Projects</h3>
-                <div className="space-y-3">
-                  {resumeData.projects.map((proj, i) => (
-                    <div key={i}>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold">{proj.name}</span>
-                        <span className="text-gray-500 text-xs italic">{proj.tech}</span>
-                        {proj.link && (
-                          <span className="text-blue-600 text-xs">{proj.link}</span>
-                        )}
-                      </div>
-                      <ul className="mt-1 ml-4 list-disc space-y-1 text-gray-700">
-                        {proj.bullets.map((b, j) => <li key={j}>{b}</li>)}
-                      </ul>
+          {/* Education */}
+          {resumeData.education.length > 0 && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Education</h3>
+              <div className="space-y-3">
+                {resumeData.education.map((edu, i) => (
+                  <div key={i} className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold">{edu.school}</p>
+                      <p className="text-gray-600 italic">
+                        {edu.degree} in {edu.field}
+                        {edu.gpa && ` · GPA: ${edu.gpa}`}
+                      </p>
+                      {edu.highlights.length > 0 && (
+                        <ul className="mt-1 ml-4 list-disc text-gray-600 text-xs">
+                          {edu.highlights.map((h, j) => <li key={j}>{h}</li>)}
+                        </ul>
+                      )}
                     </div>
-                  ))}
-                </div>
+                    <p className="text-gray-500 text-xs whitespace-nowrap">{edu.startDate} – {edu.endDate}</p>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Certifications */}
-            {resumeData.certifications.length > 0 && (
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Certifications</h3>
-                <ul className="ml-4 list-disc space-y-1 text-gray-700">
-                  {resumeData.certifications.map((c, i) => <li key={i}>{c}</li>)}
-                </ul>
+          {/* Projects */}
+          {resumeData.projects.length > 0 && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Projects</h3>
+              <div className="space-y-3">
+                {resumeData.projects.map((proj, i) => (
+                  <div key={i}>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold">{proj.name}</span>
+                      <span className="text-gray-500 text-xs italic">{proj.tech}</span>
+                      {proj.link && (
+                        <span className="text-blue-600 text-xs">{proj.link}</span>
+                      )}
+                    </div>
+                    <ul className="mt-1 ml-4 list-disc space-y-1 text-gray-700">
+                      {proj.bullets.map((b, j) => <li key={j}>{b}</li>)}
+                    </ul>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="relative">
-            <pre className="bg-gray-950 text-gray-100 rounded-lg p-4 overflow-auto text-xs leading-relaxed max-h-[500px] font-mono">
-              {latexSource}
-            </pre>
-            <button
-              onClick={copyLatex}
-              className="absolute top-3 right-3 bg-gray-700 hover:bg-gray-600 text-white text-xs px-2.5 py-1.5 rounded transition-colors"
+            </div>
+          )}
+
+          {/* Certifications */}
+          {resumeData.certifications.length > 0 && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Certifications</h3>
+              <ul className="ml-4 list-disc space-y-1 text-gray-700">
+                {resumeData.certifications.map((c, i) => <li key={i}>{c}</li>)}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* LaTeX source — collapsible disclosure for Overleaf users */}
+        <div className="mt-6 border border-gray-200 rounded-lg overflow-hidden">
+          <button
+            onClick={() => setLatexOpen((o) => !o)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-sm font-medium text-gray-600"
+          >
+            <span className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+              LaTeX Source
+              <span className="text-xs font-normal text-gray-400">(for Overleaf)</span>
+            </span>
+            <svg
+              className={`w-4 h-4 text-gray-400 transition-transform ${latexOpen ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              {copied ? "Copied!" : "Copy"}
-            </button>
-          </div>
-        )}
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+          {latexOpen && (
+            <div className="relative">
+              <pre className="bg-gray-950 text-gray-100 p-4 overflow-auto text-xs leading-relaxed max-h-[400px] font-mono">
+                {latexSource}
+              </pre>
+              <button
+                onClick={copyLatex}
+                className="absolute top-3 right-3 bg-gray-700 hover:bg-gray-600 text-white text-xs px-2.5 py-1.5 rounded transition-colors"
+              >
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Footer hint */}
