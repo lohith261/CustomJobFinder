@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { JobCard } from "@/components/JobCard";
 import { FilterBar } from "@/components/FilterBar";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
 import type { JobMatchDetails, JobPriorityInsights } from "@/types";
 
 interface Job {
@@ -45,6 +46,7 @@ function getScoreWindow(view: QuickView): { minScore?: number; maxScore?: number
 const CONFIG_BANNER_KEY = "config-banner-dismissed";
 const PINNED_JOBS_KEY = "pinned-jobs";
 const JOB_NOTES_KEY = "job-notes";
+const ONBOARDING_DISMISSED_KEY = "onboarding-dismissed";
 
 export default function OpportunityInbox() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -57,6 +59,7 @@ export default function OpportunityInbox() {
   const [jobCounts, setJobCounts] = useState<Record<string, number>>({});
   const [sources, setSources] = useState<string[]>([]);
   const [showConfigBanner, setShowConfigBanner] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [pinnedIds, setPinnedIds] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -114,6 +117,15 @@ export default function OpportunityInbox() {
       })
       .catch(() => {/* silently ignore */});
   }, []);
+
+  // Show onboarding wizard for new users: no config AND no jobs, and not already dismissed
+  useEffect(() => {
+    if (loading) return;
+    if (typeof window !== "undefined" && localStorage.getItem(ONBOARDING_DISMISSED_KEY)) return;
+    if (showConfigBanner && (jobCounts.all ?? 0) === 0) {
+      setShowOnboarding(true);
+    }
+  }, [loading, showConfigBanner, jobCounts]);
 
   const handleStatusChange = async (id: string, status: string) => {
     try {
@@ -180,6 +192,20 @@ export default function OpportunityInbox() {
     }
   };
 
+  const handleOnboardingComplete = () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(ONBOARDING_DISMISSED_KEY, "true");
+    }
+    setShowOnboarding(false);
+  };
+
+  const handleOnboardingDismiss = () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(ONBOARDING_DISMISSED_KEY, "true");
+    }
+    setShowOnboarding(false);
+  };
+
   const handleTogglePin = (id: string) => {
     setPinnedIds((prev) => {
       const next = prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id];
@@ -202,6 +228,12 @@ export default function OpportunityInbox() {
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
+      {showOnboarding && (
+        <OnboardingWizard
+          onComplete={handleOnboardingComplete}
+          onDismiss={handleOnboardingDismiss}
+        />
+      )}
       {showConfigBanner && (
         <div className="mb-5 flex items-start justify-between gap-3 rounded-xl border border-yellow-300 bg-yellow-50 px-4 py-3">
           <p className="text-sm text-yellow-800">
@@ -304,6 +336,14 @@ export default function OpportunityInbox() {
                 ? "Try a different filter or status."
                 : "Click \"Scrape Now\" to fetch fresh job listings from 6 sources, or click \"Run Pipeline\" on the Pipeline page for full AI analysis + cover letter generation."}
             </p>
+            {activeStatus === "all" && typeof window !== "undefined" && localStorage.getItem(ONBOARDING_DISMISSED_KEY) && !showOnboarding && (
+              <button
+                onClick={() => setShowOnboarding(true)}
+                className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+              >
+                Get started
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
