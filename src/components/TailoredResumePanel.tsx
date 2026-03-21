@@ -57,6 +57,100 @@ export default function TailoredResumePanel({ tailored, onRegenerate, regenerati
     }
   }
 
+  function downloadPDF() {
+    const safeName = (job?.company ?? "resume").replace(/[^a-z0-9]/gi, "_").toLowerCase();
+    const title = `ATS Resume — ${job?.title ?? "Resume"} @ ${job?.company ?? ""}`;
+
+    const skillLines = [
+      resumeData.skills.languages.length > 0 ? `<p><strong>Languages:</strong> ${resumeData.skills.languages.join(", ")}</p>` : "",
+      resumeData.skills.frameworks.length > 0 ? `<p><strong>Frameworks:</strong> ${resumeData.skills.frameworks.join(", ")}</p>` : "",
+      resumeData.skills.tools.length > 0 ? `<p><strong>Tools &amp; Platforms:</strong> ${resumeData.skills.tools.join(", ")}</p>` : "",
+      resumeData.skills.databases.length > 0 ? `<p><strong>Databases:</strong> ${resumeData.skills.databases.join(", ")}</p>` : "",
+      resumeData.skills.other.length > 0 ? `<p><strong>Other:</strong> ${resumeData.skills.other.join(", ")}</p>` : "",
+    ].filter(Boolean).join("");
+
+    const expHtml = resumeData.experience.map(exp => `
+      <div class="entry">
+        <div class="row-between">
+          <div><strong>${exp.company}</strong><br/><em>${exp.title} · ${exp.location}</em></div>
+          <span class="date">${exp.startDate} – ${exp.endDate}</span>
+        </div>
+        <ul>${exp.bullets.map(b => `<li>${b}</li>`).join("")}</ul>
+      </div>`).join("");
+
+    const eduHtml = resumeData.education.map(edu => `
+      <div class="entry">
+        <div class="row-between">
+          <div><strong>${edu.school}</strong><br/><em>${edu.degree} in ${edu.field}${edu.gpa ? ` · GPA: ${edu.gpa}` : ""}</em>
+            ${edu.highlights.length ? `<ul>${edu.highlights.map(h => `<li>${h}</li>`).join("")}</ul>` : ""}
+          </div>
+          <span class="date">${edu.startDate} – ${edu.endDate}</span>
+        </div>
+      </div>`).join("");
+
+    const projHtml = resumeData.projects.map(proj => `
+      <div class="entry">
+        <div><strong>${proj.name}</strong> <em>${proj.tech}</em>${proj.link ? ` <span class="date">${proj.link}</span>` : ""}</div>
+        <ul>${proj.bullets.map(b => `<li>${b}</li>`).join("")}</ul>
+      </div>`).join("");
+
+    const certHtml = resumeData.certifications.length > 0
+      ? `<ul>${resumeData.certifications.map(c => `<li>${c}</li>`).join("")}</ul>`
+      : "";
+
+    const contactLine = [
+      resumeData.contact.phone,
+      resumeData.contact.email,
+      resumeData.contact.linkedin,
+      resumeData.contact.github,
+      resumeData.contact.location,
+    ].filter(Boolean).join(" · ");
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>${title}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Georgia,serif;font-size:10.5pt;color:#111;line-height:1.45;padding:0.6in 0.7in}
+  h1{font-size:17pt;text-align:center;margin-bottom:3px}
+  .contact{text-align:center;font-size:9pt;color:#555;margin-bottom:10px}
+  h2{font-size:9.5pt;text-transform:uppercase;letter-spacing:.08em;color:#555;border-bottom:1px solid #ccc;padding-bottom:2px;margin:12px 0 6px}
+  .entry{margin-bottom:8px}
+  .row-between{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .date{font-size:9pt;color:#666;white-space:nowrap;flex-shrink:0}
+  ul{margin:3px 0 0 16px}
+  li{margin-bottom:2px;font-size:10pt}
+  strong{font-weight:600}
+  em{font-style:italic;color:#444}
+  p{margin-bottom:3px;font-size:10pt}
+  @media print{body{padding:0.5in 0.6in}@page{margin:0}}
+</style>
+</head>
+<body>
+<h1>${resumeData.contact.name}</h1>
+<div class="contact">${contactLine}</div>
+${resumeData.summary ? `<h2>Summary</h2><p>${resumeData.summary}</p>` : ""}
+${skillLines ? `<h2>Technical Skills</h2>${skillLines}` : ""}
+${resumeData.experience.length ? `<h2>Experience</h2>${expHtml}` : ""}
+${resumeData.education.length ? `<h2>Education</h2>${eduHtml}` : ""}
+${resumeData.projects.length ? `<h2>Projects</h2>${projHtml}` : ""}
+${resumeData.certifications.length ? `<h2>Certifications</h2>${certHtml}` : ""}
+<script>window.onload=function(){document.title="${safeName}_resume";window.print();}</script>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, "_blank");
+    if (win) {
+      win.addEventListener("afterprint", () => URL.revokeObjectURL(url));
+    } else {
+      URL.revokeObjectURL(url);
+    }
+  }
+
   const allSkills = [
     ...resumeData.skills.languages,
     ...resumeData.skills.frameworks,
@@ -95,6 +189,15 @@ export default function TailoredResumePanel({ tailored, onRegenerate, regenerati
               {regenerating ? "Regenerating…" : "Regenerate"}
             </button>
           )}
+          <button
+            onClick={downloadPDF}
+            className="flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-400 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            Download PDF
+          </button>
           <button
             onClick={copyLatex}
             className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20 transition-colors"
@@ -327,7 +430,7 @@ export default function TailoredResumePanel({ tailored, onRegenerate, regenerati
         <svg className="w-3.5 h-3.5 text-[#4f9d69] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
         </svg>
-        Click <strong className="text-gray-700">Open in Overleaf</strong> to edit and compile to PDF for free. Or download the <strong className="text-gray-700">.tex</strong> file and compile locally.
+        Click <strong className="text-gray-700">Download PDF</strong> to save a print-quality PDF via your browser. Use <strong className="text-gray-700">Open in Overleaf</strong> for a fully typeset LaTeX version.
       </div>
     </div>
   );
