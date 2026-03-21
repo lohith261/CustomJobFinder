@@ -78,6 +78,7 @@ export interface ResumeData {
   createdAt: string;
   updatedAt: string;
   analysisCount?: number;
+  textPreview?: string;
   jobAnalysis?: {
     jobId: string;
     matchScore: number;
@@ -235,6 +236,8 @@ export interface OutreachEmailData {
   emailSubject: string;
   emailBody: string;
   resumeId: string | null;
+  replied: boolean;
+  repliedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

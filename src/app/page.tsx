@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { JobCard } from "@/components/JobCard";
 import { FilterBar } from "@/components/FilterBar";
 import type { JobMatchDetails, JobPriorityInsights } from "@/types";
@@ -41,6 +42,8 @@ function getScoreWindow(view: QuickView): { minScore?: number; maxScore?: number
   }
 }
 
+const CONFIG_BANNER_KEY = "config-banner-dismissed";
+
 export default function OpportunityInbox() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +54,7 @@ export default function OpportunityInbox() {
   const [source, setSource] = useState("");
   const [jobCounts, setJobCounts] = useState<Record<string, number>>({});
   const [sources, setSources] = useState<string[]>([]);
+  const [showConfigBanner, setShowConfigBanner] = useState(false);
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
@@ -79,6 +83,19 @@ export default function OpportunityInbox() {
   useEffect(() => {
     fetchJobs();
   }, [fetchJobs]);
+
+  // Check config on mount to show warning banner if titles are not configured
+  useEffect(() => {
+    if (typeof window !== "undefined" && localStorage.getItem(CONFIG_BANNER_KEY)) return;
+    fetch("/api/config")
+      .then((r) => r.ok ? r.json() : null)
+      .then((cfg) => {
+        if (cfg && (!cfg.titles || cfg.titles.length === 0)) {
+          setShowConfigBanner(true);
+        }
+      })
+      .catch(() => {/* silently ignore */});
+  }, []);
 
   const handleStatusChange = async (id: string, status: string) => {
     try {
@@ -132,8 +149,35 @@ export default function OpportunityInbox() {
     return true;
   });
 
+  const handleDismissBanner = () => {
+    setShowConfigBanner(false);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(CONFIG_BANNER_KEY, "1");
+    }
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      {showConfigBanner && (
+        <div className="mb-5 flex items-start justify-between gap-3 rounded-xl border border-yellow-300 bg-yellow-50 px-4 py-3">
+          <p className="text-sm text-yellow-800">
+            ⚠️ Your search isn&apos;t configured yet. Jobs scraped without a config may not match your goals.{" "}
+            <Link href="/settings" className="font-semibold underline hover:text-yellow-900">
+              Set up Search Config →
+            </Link>
+          </p>
+          <button
+            onClick={handleDismissBanner}
+            className="flex-shrink-0 text-yellow-600 hover:text-yellow-800 transition-colors"
+            title="Dismiss"
+            aria-label="Dismiss banner"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
@@ -144,20 +188,25 @@ export default function OpportunityInbox() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={handleScrape}
-            disabled={scraping}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-          >
-            {scraping ? (
-              <span className="flex items-center gap-2">
-                <Spinner />
-                Scraping...
-              </span>
-            ) : (
-              "Scrape Now"
-            )}
-          </button>
+          <div className="relative group">
+            <button
+              onClick={handleScrape}
+              disabled={scraping}
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            >
+              {scraping ? (
+                <span className="flex items-center gap-2">
+                  <Spinner />
+                  Scraping...
+                </span>
+              ) : (
+                "Scrape Now"
+              )}
+            </button>
+            <div className="pointer-events-none absolute right-0 top-full mt-1.5 z-10 w-64 rounded-lg bg-gray-900 px-3 py-2 text-xs text-gray-100 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+              Fetches new job listings from all sources. For AI analysis and cover letter generation, use Run Pipeline.
+            </div>
+          </div>
         </div>
       </div>
 
@@ -177,7 +226,8 @@ export default function OpportunityInbox() {
           {quickWins.length > 0 && (
             <ShortlistPanel
               title="Quick Wins"
-              subtitle="Strong fit, lower effort"
+              subtitle="High match score (70+) with low application effort — apply today"
+              tooltip="Jobs where your resume scores 70+ AND the application is low-effort (short form, easy apply, etc.)"
               tone="emerald"
               jobs={quickWins}
             />
@@ -185,7 +235,8 @@ export default function OpportunityInbox() {
           {bestBets.length > 0 && (
             <ShortlistPanel
               title="Best Bets This Week"
-              subtitle="High upside with manageable effort"
+              subtitle="Strong upside with manageable effort — worth the extra prep"
+              tooltip="Jobs with high potential (strong fit + good role) but require moderate effort — prioritise these after Quick Wins."
               tone="amber"
               jobs={bestBets}
             />
@@ -207,7 +258,7 @@ export default function OpportunityInbox() {
             <p className="text-sm text-gray-500 mb-4">
               {activeStatus !== "all"
                 ? "Try a different filter or status."
-                : "Click \"Scrape Now\" to fetch real job listings."}
+                : "Click \"Scrape Now\" to fetch fresh job listings from 6 sources, or click \"Run Pipeline\" on the Pipeline page for full AI analysis + cover letter generation."}
             </p>
           </div>
         ) : (
@@ -229,11 +280,13 @@ export default function OpportunityInbox() {
 function ShortlistPanel({
   title,
   subtitle,
+  tooltip,
   tone,
   jobs,
 }: {
   title: string;
   subtitle: string;
+  tooltip: string;
   tone: "emerald" | "amber";
   jobs: Job[];
 }) {
@@ -244,7 +297,15 @@ function ShortlistPanel({
 
   return (
     <div className={`rounded-xl border p-4 ${toneClasses}`}>
-      <p className="text-xs font-semibold uppercase tracking-wider text-gray-600">{title}</p>
+      <div className="flex items-center gap-1.5">
+        <p className="text-xs font-semibold uppercase tracking-wider text-gray-600">{title}</p>
+        <div className="relative group">
+          <span className="cursor-default text-gray-400 text-xs select-none">ⓘ</span>
+          <div className="pointer-events-none absolute left-0 top-full mt-1.5 z-10 w-64 rounded-lg bg-gray-900 px-3 py-2 text-xs text-gray-100 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+            {tooltip}
+          </div>
+        </div>
+      </div>
       <p className="mt-1 text-sm text-gray-600">{subtitle}</p>
       <div className="mt-3 space-y-2">
         {jobs.map((job) => (

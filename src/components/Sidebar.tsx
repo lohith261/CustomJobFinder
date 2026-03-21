@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { useState, useEffect } from "react";
 
 function InboxIcon({ className }: { className?: string }) {
   return (
@@ -85,9 +86,66 @@ const navItems = [
   { href: "/outreach",    label: "Cold Outreach",      icon: OutreachIcon  },
   { href: "/pipeline",    label: "Pipeline",            icon: PipelineIcon  },
   { href: "/profile",     label: "My Profile",          icon: ProfileIcon   },
-  { href: "/status",      label: "Source Status",      icon: SignalIcon    },
   { href: "/settings",    label: "Search Config",      icon: SettingsIcon  },
 ];
+
+interface ScraperStatusEntry {
+  status: string;
+  latencyMs?: number;
+}
+
+function SourceHealthIndicator() {
+  const [statusData, setStatusData] = useState<Record<string, ScraperStatusEntry> | null>(null);
+
+  const fetchStatus = async () => {
+    try {
+      const res = await fetch("/api/scrapers/status");
+      if (!res.ok) return;
+      const data = await res.json();
+      setStatusData(data);
+    } catch {
+      // Silently ignore fetch errors — don't show anything
+    }
+  };
+
+  useEffect(() => {
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 60_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!statusData) return null;
+
+  const entries = Object.values(statusData) as ScraperStatusEntry[];
+  const offlineCount = entries.filter((s) => s.status === "error").length;
+  const degradedCount = entries.filter(
+    (s) => s.status !== "error" && s.status !== "disabled" && (s.latencyMs ?? 0) > 1500
+  ).length;
+
+  let dotColor: string;
+  let label: string;
+
+  if (offlineCount > 0) {
+    dotColor = "bg-red-500";
+    label = `${offlineCount} source${offlineCount > 1 ? "s" : ""} offline`;
+  } else if (degradedCount > 0) {
+    dotColor = "bg-amber-400";
+    label = `${degradedCount} source${degradedCount > 1 ? "s" : ""} degraded`;
+  } else {
+    dotColor = "bg-green-500 animate-pulse";
+    label = "All sources online";
+  }
+
+  return (
+    <div className="px-3 py-2 flex items-center gap-2 text-xs text-gray-500">
+      <span className={`inline-block h-2 w-2 rounded-full flex-shrink-0 ${dotColor}`} />
+      <span>{label}</span>
+      <Link href="/status" className="ml-auto text-indigo-500 hover:text-indigo-700 whitespace-nowrap">
+        details →
+      </Link>
+    </div>
+  );
+}
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -124,16 +182,19 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="border-t border-gray-200 p-4">
-        <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
-          </svg>
-          Sign out
-        </button>
+      <div className="border-t border-gray-200">
+        <SourceHealthIndicator />
+        <div className="p-4 pt-2">
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+            </svg>
+            Sign out
+          </button>
+        </div>
       </div>
     </aside>
   );

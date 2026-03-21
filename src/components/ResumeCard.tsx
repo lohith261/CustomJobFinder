@@ -79,6 +79,12 @@ export default function ResumeCard({ resume, onTogglePrimary, onDelete, loading 
         <span className="ml-auto text-xs">{formatDate(resume.createdAt)}</span>
       </div>
 
+      {resume.textPreview && (
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <p className="text-xs text-gray-400 italic line-clamp-2">{resume.textPreview}</p>
+        </div>
+      )}
+
       {resume.jobAnalysis && (
         <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
           <div className="flex items-center justify-between gap-3">

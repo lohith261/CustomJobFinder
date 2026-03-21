@@ -41,13 +41,23 @@ function SkeletonChart() {
   );
 }
 
+const TIME_RANGE_OPTIONS: { label: string; days: number }[] = [
+  { label: "7d", days: 7 },
+  { label: "30d", days: 30 },
+  { label: "90d", days: 90 },
+  { label: "All", days: 0 },
+];
+
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [days, setDays] = useState(30);
 
   useEffect(() => {
-    fetch("/api/analytics")
+    setLoading(true);
+    setError(false);
+    fetch(`/api/analytics?days=${days}`)
       .then((r) => {
         if (!r.ok) throw new Error("Failed");
         return r.json();
@@ -57,7 +67,7 @@ export default function AnalyticsPage() {
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [days]);
 
   const isEmpty =
     !loading &&
@@ -69,9 +79,26 @@ export default function AnalyticsPage() {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-        <p className="text-gray-500 mt-1 text-sm">Insights from your job search data.</p>
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
+          <p className="text-gray-500 mt-1 text-sm">Insights from your job search data.</p>
+        </div>
+        <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1">
+          {TIME_RANGE_OPTIONS.map((opt) => (
+            <button
+              key={opt.days}
+              onClick={() => setDays(opt.days)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                days === opt.days
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Loading skeleton */}
@@ -156,27 +183,27 @@ export default function AnalyticsPage() {
           {/* Stat strip */}
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
             <StatCard
-              label="Jobs This Week"
+              label="Jobs Scraped"
               value={data.weeklyActivity.jobsScraped}
-              subtitle="new in last 7 days"
+              subtitle={days > 0 ? `new in last ${days} days` : "all time"}
               valueColor="text-indigo-600"
             />
             <StatCard
               label="Applications"
               value={data.weeklyActivity.applicationsCreated}
-              subtitle="created this week"
+              subtitle={days > 0 ? `created in last ${days} days` : "all time"}
               valueColor="text-blue-600"
             />
             <StatCard
               label="Interviews"
               value={data.weeklyActivity.interviewsScheduled}
-              subtitle="moved to interview this week"
+              subtitle={days > 0 ? `moved to interview in last ${days} days` : "all time"}
               valueColor="text-amber-600"
             />
             <StatCard
               label="Analyses"
               value={data.weeklyActivity.analysesCreated}
-              subtitle="resume checks this week"
+              subtitle={days > 0 ? `resume checks in last ${days} days` : "all time"}
               valueColor="text-emerald-600"
             />
             <StatCard

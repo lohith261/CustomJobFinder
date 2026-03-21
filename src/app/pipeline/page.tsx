@@ -66,6 +66,7 @@ export default function PipelinePage() {
   const [lastRunResult, setLastRunResult] = useState<PipelineRun | null>(null);
   const [expandedErrors, setExpandedErrors] = useState<string | null>(null);
   const [expandedCoverLetter, setExpandedCoverLetter] = useState<string | null>(null);
+  const [historyFilter, setHistoryFilter] = useState<"all" | "completed" | "failed">("all");
 
   const fetchHistory = useCallback(async () => {
     try {
@@ -360,7 +361,24 @@ export default function PipelinePage() {
 
       {/* Pipeline History */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Pipeline History</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Pipeline History</h2>
+          <div className="flex gap-1.5">
+            {(["all", "completed", "failed"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setHistoryFilter(f)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  historyFilter === f
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
         {historyLoading ? (
           <div className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse space-y-3">
             {[1, 2, 3].map((i) => <div key={i} className="h-8 bg-gray-100 rounded" />)}
@@ -380,7 +398,7 @@ export default function PipelinePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {history.map((run) => (
+                {history.filter((run) => historyFilter === "all" || run.status === historyFilter).map((run) => (
                   <>
                     <tr key={run.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3">
@@ -425,24 +443,13 @@ export default function PipelinePage() {
         )}
       </div>
 
-      {/* Local automation instructions */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">Local Browser Automation</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          For automatic form filling on LinkedIn Easy Apply, Greenhouse, and Lever — run the local Playwright script on your machine:
-        </p>
-        <div className="space-y-2">
-          <div className="bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-xs space-y-1">
-            <p><span className="text-gray-500"># Copy the config template and fill in your details</span></p>
-            <p>cp scripts/apply-config.example.json scripts/apply-config.json</p>
-            <p className="mt-2"><span className="text-gray-500"># Dry run — preview what would be filled</span></p>
-            <p>npm run auto-apply:dry</p>
-            <p className="mt-2"><span className="text-gray-500"># Live run — opens browser, fills forms, waits for your approval before submitting</span></p>
-            <p>npm run auto-apply</p>
-          </div>
-        </div>
-        <p className="text-xs text-gray-400 mt-3">
-          Supported platforms: LinkedIn Easy Apply, Greenhouse, Lever, and generic forms. Always confirms before final submit.
+      {/* Application instructions banner */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+        <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p className="text-sm text-blue-800">
+          Applications are opened in a new tab. Copy your cover letter, then paste it into the job application form.
         </p>
       </div>
     </div>

@@ -8,13 +8,16 @@ import type { OutreachEmailData } from "@/types";
 function EmailCard({
   record,
   onDelete,
+  onReplyToggle,
 }: {
   record: OutreachEmailData;
   onDelete: (id: string) => void;
+  onReplyToggle: (id: string, replied: boolean) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [copiedSubject, setCopiedSubject] = useState(false);
   const [copiedBody, setCopiedBody] = useState(false);
+  const [replyLoading, setReplyLoading] = useState(false);
 
   function copy(text: string, which: "subject" | "body") {
     navigator.clipboard.writeText(text).then(() => {
@@ -26,6 +29,28 @@ function EmailCard({
         setTimeout(() => setCopiedBody(false), 2000);
       }
     });
+  }
+
+  function openInGmail() {
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(record.emailSubject)}&body=${encodeURIComponent(record.emailBody)}`;
+    window.open(mailtoUrl, "_blank");
+  }
+
+  async function toggleReply(newReplied: boolean) {
+    setReplyLoading(true);
+    try {
+      const res = await fetch(`/api/outreach/${record.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ replied: newReplied }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        onReplyToggle(record.id, data.replied);
+      }
+    } finally {
+      setReplyLoading(false);
+    }
   }
 
   const info = record.companyInfo;
@@ -49,6 +74,9 @@ function EmailCard({
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
+          {record.replied && (
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0" title="Replied" />
+          )}
           {info.industry && (
             <span className="hidden sm:inline-flex text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-medium">
               {info.industry}
@@ -154,8 +182,8 @@ function EmailCard({
               </pre>
             </div>
 
-            {/* Copy all + delete */}
-            <div className="flex items-center justify-between pt-1">
+            {/* Copy all + Gmail + delete */}
+            <div className="flex items-center gap-2 flex-wrap pt-1">
               <button
                 onClick={() => copy(`Subject: ${record.emailSubject}\n\n${record.emailBody}`, "body")}
                 className="flex items-center gap-1.5 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg px-4 py-2 font-medium transition-colors"
@@ -166,6 +194,16 @@ function EmailCard({
                 Copy full email
               </button>
               <button
+                onClick={openInGmail}
+                className="flex items-center gap-1.5 text-sm text-red-600 bg-white border border-red-400 hover:bg-red-50 rounded-lg px-4 py-2 font-medium transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Open in Gmail
+              </button>
+              <div className="flex-1" />
+              <button
                 onClick={() => onDelete(record.id)}
                 className="text-sm text-gray-400 hover:text-red-600 transition-colors flex items-center gap-1"
               >
@@ -174,6 +212,42 @@ function EmailCard({
                 </svg>
                 Delete
               </button>
+            </div>
+
+            {/* Did they reply? */}
+            <div className="flex items-center gap-3 pt-2 border-t border-gray-100 mt-1">
+              <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Did they reply?</span>
+              {record.replied ? (
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-full px-3 py-1">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Replied
+                  {record.repliedAt && (
+                    <span className="text-green-500 font-normal text-xs ml-0.5">
+                      {new Date(record.repliedAt).toLocaleDateString()}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => toggleReply(false)}
+                    disabled={replyLoading}
+                    className="ml-1 text-green-500 hover:text-green-800 disabled:opacity-50"
+                    title="Un-mark as replied"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </span>
+              ) : (
+                <button
+                  onClick={() => toggleReply(true)}
+                  disabled={replyLoading}
+                  className="text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-full px-3 py-1 transition-colors disabled:opacity-50"
+                >
+                  {replyLoading ? "Saving…" : "Mark as replied"}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -253,6 +327,13 @@ export default function OutreachPage() {
     } catch {
       showToast("Failed to delete", "error");
     }
+  }
+
+  function handleReplyToggle(id: string, replied: boolean) {
+    const patch = (r: OutreachEmailData) =>
+      r.id === id ? { ...r, replied, repliedAt: replied ? new Date().toISOString() : null } : r;
+    setHistory((prev) => prev.map(patch));
+    setActiveResult((prev) => (prev && prev.id === id ? patch(prev) : prev));
   }
 
   return (
@@ -338,7 +419,7 @@ export default function OutreachPage() {
               Just generated
             </span>
           </div>
-          <EmailCard record={activeResult} onDelete={handleDelete} />
+          <EmailCard record={activeResult} onDelete={handleDelete} onReplyToggle={handleReplyToggle} />
         </div>
       )}
 
@@ -370,7 +451,7 @@ export default function OutreachPage() {
             {history
               .filter((r) => r.id !== activeResult?.id)
               .map((record) => (
-                <EmailCard key={record.id} record={record} onDelete={handleDelete} />
+                <EmailCard key={record.id} record={record} onDelete={handleDelete} onReplyToggle={handleReplyToggle} />
               ))}
           </div>
         )}

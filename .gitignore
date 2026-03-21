@@ -7,3 +7,4 @@ prisma/dev.db
 prisma/*.db-journal
 .agents/
 .claude/
+.vercel

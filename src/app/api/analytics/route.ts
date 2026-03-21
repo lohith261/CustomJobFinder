@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { KANBAN_COLUMNS } from "@/types";
 import type {
@@ -13,15 +13,26 @@ import type {
 } from "@/types";
 import { getRequiredUserId } from "@/lib/auth-helpers";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const auth = await getRequiredUserId();
     if ("error" in auth) return auth.error;
     const { userId } = auth;
 
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const { searchParams } = new URL(req.url);
+    const daysParam = parseInt(searchParams.get("days") ?? "30", 10);
+    const days = isNaN(daysParam) ? 30 : daysParam;
+    // days === 0 means "all time" — no date filter
+    const periodStart = days > 0 ? new Date(Date.now() - days * 24 * 60 * 60 * 1000) : null;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
+    // For weeklyTrend we show the last N weeks based on the period (min 2, max 52)
+    const trendDays = days > 0 ? days : 365;
+    const trendIntervalDays = Math.max(trendDays, 14);
+
+    const dateFilter = periodStart ? { gte: periodStart } : undefined;
 
     const [
       applicationGroups,
@@ -31,10 +42,10 @@ export async function GET() {
       rawTopCompanies,
       rawSourceJobs,
       allApplicationsWithSource,
-      jobsThisWeek,
-      appsThisWeek,
-      interviewsThisWeek,
-      analysesThisWeek,
+      jobsThisPeriod,
+      appsThisPeriod,
+      interviewsThisPeriod,
+      analysesThisPeriod,
       overdueFollowUps,
       avgScoreResult,
       resumesWithAnalyses,
@@ -42,31 +53,54 @@ export async function GET() {
     ] = await Promise.all([
       prisma.application.groupBy({
         by: ["status"],
-        where: { job: { userId } },
+        where: {
+          job: { userId },
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
         _count: { _all: true },
       }),
 
       prisma.job.findMany({
-        where: { userId, status: { not: "dismissed" } },
+        where: {
+          userId,
+          status: { not: "dismissed" },
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
         select: { matchScore: true },
       }),
 
-      prisma.$queryRaw<Array<{ week: string; avgScore: number; jobCount: bigint }>>`
-        SELECT
-          TO_CHAR(DATE_TRUNC('week', "createdAt"), 'IYYY-"W"IW') AS week,
-          CAST(ROUND(AVG("matchScore")) AS INTEGER)               AS "avgScore",
-          COUNT(*)                                                AS "jobCount"
-        FROM "Job"
-        WHERE "createdAt" >= NOW() - INTERVAL '56 days'
-          AND status != 'dismissed'
-          AND "userId" = ${userId}
-        GROUP BY DATE_TRUNC('week', "createdAt")
-        ORDER BY DATE_TRUNC('week', "createdAt") ASC
-      `,
+      days > 0
+        ? prisma.$queryRaw<Array<{ week: string; avgScore: number; jobCount: bigint }>>`
+            SELECT
+              TO_CHAR(DATE_TRUNC('week', "createdAt"), 'IYYY-"W"IW') AS week,
+              CAST(ROUND(AVG("matchScore")) AS INTEGER)               AS "avgScore",
+              COUNT(*)                                                AS "jobCount"
+            FROM "Job"
+            WHERE "createdAt" >= NOW() - (${trendIntervalDays} || ' days')::INTERVAL
+              AND status != 'dismissed'
+              AND "userId" = ${userId}
+            GROUP BY DATE_TRUNC('week', "createdAt")
+            ORDER BY DATE_TRUNC('week', "createdAt") ASC
+          `
+        : prisma.$queryRaw<Array<{ week: string; avgScore: number; jobCount: bigint }>>`
+            SELECT
+              TO_CHAR(DATE_TRUNC('week', "createdAt"), 'IYYY-"W"IW') AS week,
+              CAST(ROUND(AVG("matchScore")) AS INTEGER)               AS "avgScore",
+              COUNT(*)                                                AS "jobCount"
+            FROM "Job"
+            WHERE status != 'dismissed'
+              AND "userId" = ${userId}
+            GROUP BY DATE_TRUNC('week', "createdAt")
+            ORDER BY DATE_TRUNC('week', "createdAt") ASC
+          `,
 
       prisma.job.groupBy({
         by: ["title"],
-        where: { userId, status: { not: "dismissed" } },
+        where: {
+          userId,
+          status: { not: "dismissed" },
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
         _count: { _all: true },
         _avg: { matchScore: true },
         orderBy: { _count: { title: "desc" } },
@@ -75,7 +109,11 @@ export async function GET() {
 
       prisma.job.groupBy({
         by: ["company"],
-        where: { userId, status: { not: "dismissed" } },
+        where: {
+          userId,
+          status: { not: "dismissed" },
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
         _count: { _all: true },
         _avg: { matchScore: true },
         orderBy: { _count: { company: "desc" } },
@@ -84,20 +122,48 @@ export async function GET() {
 
       prisma.job.groupBy({
         by: ["source"],
-        where: { userId, status: { not: "dismissed" } },
+        where: {
+          userId,
+          status: { not: "dismissed" },
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
         _count: { _all: true },
         _avg: { matchScore: true },
       }),
 
       prisma.application.findMany({
-        where: { job: { userId } },
+        where: {
+          job: { userId },
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
         include: { job: { select: { source: true } } },
       }),
 
-      prisma.job.count({ where: { userId, createdAt: { gte: sevenDaysAgo } } }),
-      prisma.application.count({ where: { job: { userId }, createdAt: { gte: sevenDaysAgo } } }),
-      prisma.application.count({ where: { job: { userId }, status: "interview", updatedAt: { gte: sevenDaysAgo } } }),
-      prisma.resumeAnalysis.count({ where: { resume: { userId }, createdAt: { gte: sevenDaysAgo } } }),
+      prisma.job.count({
+        where: {
+          userId,
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
+      }),
+      prisma.application.count({
+        where: {
+          job: { userId },
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
+      }),
+      prisma.application.count({
+        where: {
+          job: { userId },
+          status: "interview",
+          ...(dateFilter ? { updatedAt: dateFilter } : {}),
+        },
+      }),
+      prisma.resumeAnalysis.count({
+        where: {
+          resume: { userId },
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
+      }),
       prisma.application.count({
         where: {
           job: { userId },
@@ -105,13 +171,22 @@ export async function GET() {
           status: { in: ["applied", "interview"] },
         },
       }),
-      prisma.job.aggregate({ where: { userId }, _avg: { matchScore: true } }),
+      prisma.job.aggregate({
+        where: {
+          userId,
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
+        _avg: { matchScore: true },
+      }),
       prisma.resume.findMany({
         where: { userId },
         include: { analyses: { select: { matchScore: true } } },
       }),
       prisma.resumeAnalysis.findMany({
-        where: { resume: { userId } },
+        where: {
+          resume: { userId },
+          ...(dateFilter ? { createdAt: dateFilter } : {}),
+        },
         select: { missingKeywords: true },
       }),
     ]);
@@ -210,10 +285,10 @@ export async function GET() {
       resumePerformance,
       topMissingKeywords,
       weeklyActivity: {
-        jobsScraped: jobsThisWeek,
-        applicationsCreated: appsThisWeek,
-        interviewsScheduled: interviewsThisWeek,
-        analysesCreated: analysesThisWeek,
+        jobsScraped: jobsThisPeriod,
+        applicationsCreated: appsThisPeriod,
+        interviewsScheduled: interviewsThisPeriod,
+        analysesCreated: analysesThisPeriod,
         overdueFollowUps,
         avgMatchScore: Math.round(avgScoreResult._avg.matchScore ?? 0),
       },

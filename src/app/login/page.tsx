@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const passwordReset = searchParams.get("reset") === "success";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -45,6 +48,11 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
+          {passwordReset && (
+            <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+              Password reset successfully. You can now sign in with your new password.
+            </div>
+          )}
           {error && (
             <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
               {error}
@@ -64,7 +72,12 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">Password</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-medium text-gray-700">Password</label>
+              <Link href="/forgot-password" className="text-xs text-indigo-600 hover:underline">
+                Forgot password?
+              </Link>
+            </div>
             <input
               type="password"
               required
@@ -92,5 +105,17 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-sm text-center text-sm text-gray-500">Loading…</div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

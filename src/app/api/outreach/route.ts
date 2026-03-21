@@ -24,6 +24,8 @@ export async function GET() {
         emailSubject: r.emailSubject,
         emailBody: r.emailBody,
         resumeId: r.resumeId,
+        replied: r.replied,
+        repliedAt: r.repliedAt ? r.repliedAt.toISOString() : null,
         createdAt: r.createdAt.toISOString(),
         updatedAt: r.updatedAt.toISOString(),
       }))
@@ -76,6 +78,8 @@ export async function POST(req: NextRequest) {
       emailSubject: saved.emailSubject,
       emailBody: saved.emailBody,
       resumeId: saved.resumeId,
+      replied: saved.replied,
+      repliedAt: saved.repliedAt ? saved.repliedAt.toISOString() : null,
       createdAt: saved.createdAt.toISOString(),
       updatedAt: saved.updatedAt.toISOString(),
     });

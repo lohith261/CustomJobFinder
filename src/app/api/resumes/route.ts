@@ -55,18 +55,29 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const data = resumes.map((r) => ({
-      id: r.id,
-      name: r.name,
-      fileName: r.fileName,
-      format: r.format,
-      isPrimary: r.isPrimary,
-      wordCount: r.wordCount,
-      createdAt: r.createdAt.toISOString(),
-      updatedAt: r.updatedAt.toISOString(),
-      analysisCount: r._count.analyses,
-      jobAnalysis: analysesByResume.get(r.id) ?? null,
-    }));
+    const data = resumes.map((r) => {
+      const rawText = (r.textContent ?? "").slice(0, 200);
+      const lines = rawText
+        .split("\n")
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0)
+        .slice(0, 3);
+      const textPreview = lines.join(" · ") || undefined;
+
+      return {
+        id: r.id,
+        name: r.name,
+        fileName: r.fileName,
+        format: r.format,
+        isPrimary: r.isPrimary,
+        wordCount: r.wordCount,
+        createdAt: r.createdAt.toISOString(),
+        updatedAt: r.updatedAt.toISOString(),
+        analysisCount: r._count.analyses,
+        jobAnalysis: analysesByResume.get(r.id) ?? null,
+        textPreview,
+      };
+    });
 
     return NextResponse.json(data);
   } catch (err) {
