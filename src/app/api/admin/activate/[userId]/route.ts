@@ -1,6 +1,7 @@
 import { getRequiredUserId } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { sendProActivationEmail } from "@/lib/email";
 
 async function requireAdmin(callerId: string) {
   const user = await prisma.user.findUnique({ where: { id: callerId }, select: { isAdmin: true, email: true } });
@@ -33,6 +34,8 @@ export async function POST(req: Request, { params }: { params: { userId: string 
     },
     select: { email: true, subscriptionPlan: true, subscriptionEndsAt: true },
   });
+
+  sendProActivationEmail(updated.email, updated.subscriptionPlan ?? "monthly", updated.subscriptionEndsAt!).catch(() => {});
 
   return Response.json({ success: true, user: updated });
 }

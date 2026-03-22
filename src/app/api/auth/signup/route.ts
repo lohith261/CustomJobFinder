@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { sendVerificationEmail } from "@/lib/email";
 
 // RFC 5322-inspired email format check (no library dependency)
 const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
@@ -28,9 +30,38 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
+
+    const devMode = !process.env.RESEND_API_KEY;
+
+    if (devMode) {
+      // Dev mode: skip email verification, auto-verify
+      const user = await prisma.user.create({
+        data: { email: email.toLowerCase(), passwordHash, name: name || "", emailVerified: true },
+      });
+      return NextResponse.json({ id: user.id, email: user.email }, { status: 201 });
+    }
+
+    // Production: generate verify token and send email
+    const verifyToken = crypto.randomBytes(32).toString("hex");
+    const verifyTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     const user = await prisma.user.create({
-      data: { email: email.toLowerCase(), passwordHash, name: name || "" },
+      data: {
+        email: email.toLowerCase(),
+        passwordHash,
+        name: name || "",
+        emailVerified: false,
+        verifyToken,
+        verifyTokenExpiry,
+      },
     });
+
+    // Send verification email — best effort (signup still succeeds if email fails)
+    try {
+      await sendVerificationEmail(user.email, verifyToken);
+    } catch (emailErr) {
+      console.error("Failed to send verification email:", emailErr);
+    }
 
     return NextResponse.json({ id: user.id, email: user.email }, { status: 201 });
   } catch (err) {

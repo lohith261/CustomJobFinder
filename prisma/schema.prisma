@@ -23,6 +23,9 @@ model User {
   upiTransactionId     String?
   proActivatedAt       DateTime?
   proActivatedBy       String?
+  emailVerified        Boolean         @default(false)
+  verifyToken          String?
+  verifyTokenExpiry    DateTime?
   isAdmin              Boolean         @default(false)
   aiAnalysisCount      Int             @default(0)
   aiCoverLetterCount   Int             @default(0)
