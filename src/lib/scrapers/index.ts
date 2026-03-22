@@ -6,6 +6,8 @@ import { ArbeitnowScraper } from "./arbeitnow";
 import { JobicyScraper } from "./jobicy";
 import { TheMuseScraper } from "./themuse";
 import { AdzunaScraper } from "./adzuna";
+import { JSearchScraper } from "./jsearch";
+import { IntershalaScraper } from "./internshala";
 import { deduplicateJobs } from "@/lib/dedup";
 
 /** All available scrapers. Add new scrapers here. */
@@ -17,6 +19,8 @@ function createScrapers(): Scraper[] {
     new JobicyScraper(),
     new TheMuseScraper(),
     new AdzunaScraper(), // auto-disables when ADZUNA_APP_ID / ADZUNA_API_KEY are not set
+    new JSearchScraper(), // auto-disables when JSEARCH_API_KEY is not set
+    new IntershalaScraper(), // no API key needed — scrapes internshala.com/jobs
   ];
   return scrapers;
 }
