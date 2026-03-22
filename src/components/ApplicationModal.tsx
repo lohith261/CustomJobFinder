@@ -5,6 +5,7 @@ import type { ApplicationData, TimelineEvent } from "@/types";
 import { KANBAN_COLUMNS } from "@/types";
 import TimelineEntry from "./TimelineEntry";
 import { formatDateLabel, getFollowUpUrgency } from "@/lib/follow-up";
+import { UpgradePrompt } from "./UpgradePrompt";
 
 // ─── Application Kit ──────────────────────────────────────────────────────────
 
@@ -27,6 +28,7 @@ function ApplicationKit({ jobId, jobUrl }: { jobId: string; jobUrl: string }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [expandedSuggestion, setExpandedSuggestion] = useState<number | null>(null);
+  const [quotaExceeded, setQuotaExceeded] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -76,6 +78,10 @@ function ApplicationKit({ jobId, jobUrl }: { jobId: string; jobUrl: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ resumeId: primaryResumeId, tone }),
       });
+      if (res.status === 402) {
+        setQuotaExceeded(true);
+        return;
+      }
       if (res.ok) { const cl = await res.json(); setCoverLetter(cl); setEditedLetter(cl.content); setSavedContent(cl.content); }
     } finally { setGenerating(false); }
   }
@@ -152,6 +158,7 @@ function ApplicationKit({ jobId, jobUrl }: { jobId: string; jobUrl: string }) {
 
       <div>
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Cover Letter</p>
+        {quotaExceeded && <div className="mb-3"><UpgradePrompt feature="coverLetter" /></div>}
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <select value={tone} onChange={(e) => setTone(e.target.value as typeof tone)} className="border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="professional">Professional</option>

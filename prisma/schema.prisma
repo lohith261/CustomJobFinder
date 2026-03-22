@@ -9,20 +9,31 @@ datasource db {
 }
 
 model User {
-  id                String          @id @default(cuid())
-  email             String          @unique
-  passwordHash      String
-  name              String          @default("")
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  resetToken        String?
-  resetTokenExpiry  DateTime?
-  profile           UserProfile?
-  jobs              Job[]
-  resumes           Resume[]
-  searchConfigs     SearchConfig[]
-  pipelineRuns      PipelineRun[]
-  outreachEmails    OutreachEmail[]
+  id                   String          @id @default(cuid())
+  email                String          @unique
+  passwordHash         String
+  name                 String          @default("")
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  resetToken           String?
+  resetTokenExpiry     DateTime?
+  subscriptionStatus   String          @default("free")
+  subscriptionPlan     String?
+  subscriptionEndsAt   DateTime?
+  upiTransactionId     String?
+  proActivatedAt       DateTime?
+  proActivatedBy       String?
+  isAdmin              Boolean         @default(false)
+  aiAnalysisCount      Int             @default(0)
+  aiCoverLetterCount   Int             @default(0)
+  aiOutreachCount      Int             @default(0)
+  aiUsageResetAt       DateTime?
+  profile              UserProfile?
+  jobs                 Job[]
+  resumes              Resume[]
+  searchConfigs        SearchConfig[]
+  pipelineRuns         PipelineRun[]
+  outreachEmails       OutreachEmail[]
 }
 
 model Job {

@@ -389,6 +389,13 @@ export function Sidebar() {
       <div className="border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
         <SourceHealthIndicator />
         <div className="p-4 pt-2">
+          <Link
+            href="/pricing"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition-colors border border-indigo-200 mt-2 mb-1"
+          >
+            <span>⚡</span>
+            Upgrade to Pro
+          </Link>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-colors"

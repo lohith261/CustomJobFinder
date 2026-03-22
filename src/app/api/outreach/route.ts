@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateOutreachEmail } from "@/lib/ai/outreach";
 import { getRequiredUserId } from "@/lib/auth-helpers";
+import { checkQuota } from "@/lib/quota";
 
 export async function GET() {
   try {
@@ -41,6 +42,14 @@ export async function POST(req: NextRequest) {
     const auth = await getRequiredUserId();
     if ("error" in auth) return auth.error;
     const { userId } = auth;
+
+    const quota = await checkQuota(userId, "outreach");
+    if (!quota.allowed) {
+      return NextResponse.json(
+        { error: "free_limit_reached", message: "You've used your 2 free outreach emails this month. Upgrade to Pro for unlimited.", upgradeUrl: "/pricing" },
+        { status: 402 }
+      );
+    }
 
     const { companyUrl, resumeId } = await req.json();
     if (!companyUrl) return NextResponse.json({ error: "companyUrl is required" }, { status: 400 });

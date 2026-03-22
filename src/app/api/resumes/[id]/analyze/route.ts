@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { analyzeTailor } from "@/lib/ai/tailor";
 import { fromJsonArray, toJsonArray } from "@/lib/json-arrays";
 import { getRequiredUserId } from "@/lib/auth-helpers";
+import { checkQuota } from "@/lib/quota";
 
 export async function POST(
   req: NextRequest,
@@ -12,6 +13,14 @@ export async function POST(
     const auth = await getRequiredUserId();
     if ("error" in auth) return auth.error;
     const { userId } = auth;
+
+    const quota = await checkQuota(userId, "analysis");
+    if (!quota.allowed) {
+      return NextResponse.json(
+        { error: "free_limit_reached", message: "You've used your 3 free analyses this month. Upgrade to Pro for unlimited.", upgradeUrl: "/pricing" },
+        { status: 402 }
+      );
+    }
 
     const { jobId } = await req.json();
 

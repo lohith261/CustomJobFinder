@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateCoverLetter } from "@/lib/ai/cover-letter";
 import { getRequiredUserId } from "@/lib/auth-helpers";
+import { checkQuota } from "@/lib/quota";
 
 export async function GET(
   _req: NextRequest,
@@ -86,6 +87,14 @@ export async function POST(
     const auth = await getRequiredUserId();
     if ("error" in auth) return auth.error;
     const { userId } = auth;
+
+    const quota = await checkQuota(userId, "coverLetter");
+    if (!quota.allowed) {
+      return NextResponse.json(
+        { error: "free_limit_reached", message: "You've used your 3 free cover letters this month. Upgrade to Pro for unlimited.", upgradeUrl: "/pricing" },
+        { status: 402 }
+      );
+    }
 
     const body = await req.json();
     const { resumeId, tone = "professional" } = body as {

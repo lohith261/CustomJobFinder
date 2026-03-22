@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { OutreachEmailData } from "@/types";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 
 // ─── Email card ────────────────────────────────────────────────────────────────
 
@@ -265,6 +266,7 @@ export default function OutreachPage() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [activeResult, setActiveResult] = useState<OutreachEmailData | null>(null);
+  const [outreachQuotaExceeded, setOutreachQuotaExceeded] = useState(false);
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
@@ -299,6 +301,11 @@ export default function OutreachPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ companyUrl: trimmed }),
       });
+
+      if (res.status === 402) {
+        setOutreachQuotaExceeded(true);
+        return;
+      }
 
       if (!res.ok) {
         const err = await res.json();
@@ -406,6 +413,11 @@ export default function OutreachPage() {
         <p className="mt-3 text-xs text-slate-400">
           We&apos;ll scrape the page, research the company with AI, and write a personalised email using your primary resume.
         </p>
+        {outreachQuotaExceeded && (
+          <div className="mt-4">
+            <UpgradePrompt feature="outreach" />
+          </div>
+        )}
       </div>
 
       {/* Active result (newly generated) */}
