@@ -1,58 +1,52 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
+const PUBLIC_PATHS = [
+  "/landing",
+  "/login",
+  "/signup",
+  "/verify-email",
+  "/pricing",
+  "/forgot-password",
+  "/reset-password",
+];
+
 export default withAuth(
   function middleware(req) {
-    // If authenticated user hits /landing, redirect them to the app root
-    if (req.nextUrl.pathname === "/landing" && req.nextauth.token) {
+    const { pathname } = req.nextUrl;
+    const token = req.nextauth.token;
+
+    // Authenticated user hitting landing → send to app
+    if (pathname === "/landing" && token) {
       return NextResponse.redirect(new URL("/", req.url));
     }
+
+    // Unauthenticated user hitting a protected route → /landing (no callbackUrl)
+    if (!token) {
+      const isPublic =
+        PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/")) ||
+        pathname.startsWith("/api/auth") ||
+        pathname.startsWith("/_next/static") ||
+        pathname.startsWith("/_next/image") ||
+        pathname === "/favicon.ico";
+
+      if (!isPublic) {
+        return NextResponse.redirect(new URL("/landing", req.url));
+      }
+    }
+
     return NextResponse.next();
   },
   {
     callbacks: {
-      authorized({ req, token }) {
-        const { pathname } = req.nextUrl;
-
-        // Public paths — always allow
-        const publicPaths = [
-          "/landing",
-          "/login",
-          "/signup",
-          "/verify-email",
-          "/pricing",
-          "/forgot-password",
-          "/reset-password",
-        ];
-        if (publicPaths.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
-          return true;
-        }
-
-        // next-auth internals and static assets — always allow
-        if (
-          pathname.startsWith("/api/auth") ||
-          pathname.startsWith("/_next/static") ||
-          pathname.startsWith("/_next/image") ||
-          pathname === "/favicon.ico"
-        ) {
-          return true;
-        }
-
-        // For the root path, redirect unauthenticated users to /landing
-        // returning false causes next-auth to redirect to the signIn page,
-        // but we override that via the pages config below.
-        return !!token;
+      // Always return true — let the middleware function above handle all redirects
+      authorized() {
+        return true;
       },
-    },
-    pages: {
-      signIn: "/landing",
     },
   }
 );
 
 export const config = {
-  matcher: [
-    // Run middleware on all paths except Next.js internals and static files
-    "/((?!_next/static|_next/image|favicon\\.ico).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon\\.ico).*)"],
 };
