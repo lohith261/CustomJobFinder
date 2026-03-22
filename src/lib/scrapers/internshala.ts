@@ -3,6 +3,7 @@
 import { RawJob, SearchConfigData } from "@/types";
 import { Scraper, ScraperResult } from "./types";
 import { passesGeoFilter } from "./geo-filter";
+import { scrapeDOFetch, isScrapeDOEnabled } from "./scrape-do";
 
 const INTERNSHALA_BASE_URL = "https://internshala.com/jobs";
 const REQUEST_TIMEOUT_MS = 15000;
@@ -442,24 +443,30 @@ async function fetchInternshalaPage(slug: string): Promise<ParsedJob[]> {
   const url = `${INTERNSHALA_BASE_URL}/${slug}/`;
   console.log(`[IntershalaScraper] Fetching: ${url}`);
 
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": USER_AGENT,
-      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-      "Accept-Language": "en-US,en;q=0.9",
-      "Accept-Encoding": "gzip, deflate, br",
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Referer: "https://internshala.com/jobs/",
-    },
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  });
+  let html: string;
 
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status} for ${url}`);
+  if (isScrapeDOEnabled()) {
+    html = await scrapeDOFetch(url, { timeoutMs: 30000 });
+  } else {
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": USER_AGENT,
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+        Referer: "https://internshala.com/jobs/",
+      },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} for ${url}`);
+    }
+
+    html = await response.text();
   }
-
-  const html = await response.text();
   console.log(`[IntershalaScraper] Received ${html.length} bytes for slug "${slug}"`);
 
   // Try class-based card extraction first
