@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import useSWR from "swr";
 import KanbanBoard from "@/components/KanbanBoard";
 import ApplicationModal from "@/components/ApplicationModal";
 import ApprovalGateModal from "@/components/ApprovalGateModal";
@@ -8,6 +9,8 @@ import JobPickerModal from "@/components/JobPickerModal";
 import type { ApplicationData } from "@/types";
 import { KANBAN_COLUMNS } from "@/types";
 import { formatDateLabel, getFollowUpUrgency } from "@/lib/follow-up";
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface PendingMove {
   appId: string;
@@ -19,8 +22,11 @@ interface JobChoice {
 }
 
 export default function ApplicationsPage() {
-  const [applications, setApplications] = useState<ApplicationData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: applications = [], mutate: mutateApplications, isLoading: loading } = useSWR<ApplicationData[]>(
+    "/api/applications",
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 30_000 }
+  );
   const [kanbanSearch, setKanbanSearch] = useState("");
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
   const [pendingMove, setPendingMove] = useState<PendingMove | null>(null);
@@ -52,23 +58,6 @@ export default function ApplicationsPage() {
     return () => document.removeEventListener("mousedown", handleOutside);
   }, [moveDropdownOpen]);
 
-  const fetchApplications = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/applications");
-      const data = await res.json();
-      setApplications(Array.isArray(data) ? data : []);
-    } catch {
-      setApplications([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchApplications();
-  }, [fetchApplications]);
-
   function handleMove(appId: string, newStatus: string) {
     // Intercept "applied" moves for approval gate
     if (newStatus === "applied") {
@@ -93,9 +82,7 @@ export default function ApplicationsPage() {
       });
       if (!res.ok) throw new Error("Move failed");
       const updated: ApplicationData = await res.json();
-      setApplications((prev) =>
-        prev.map((a) => (a.id === appId ? updated : a))
-      );
+      mutateApplications((prev) => prev?.map((a) => (a.id === appId ? updated : a)), { revalidate: false });
     } catch {
       showToast("Failed to move application", "error");
     }
@@ -123,7 +110,7 @@ export default function ApplicationsPage() {
       }
       if (!res.ok) throw new Error("Failed to create application");
       const newApp: ApplicationData = await res.json();
-      setApplications((prev) => [newApp, ...prev]);
+      mutateApplications((prev) => [newApp, ...(prev || [])], { revalidate: false });
       setShowJobPicker(false);
       showToast(`Added "${newApp.job.title}" to Bookmarked`);
     } catch {
@@ -134,7 +121,7 @@ export default function ApplicationsPage() {
   }
 
   function handleUpdate(updated: ApplicationData) {
-    setApplications((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+    mutateApplications((prev) => prev?.map((a) => (a.id === updated.id ? updated : a)), { revalidate: false });
   }
 
   function toggleSelectMode() {
@@ -189,12 +176,7 @@ export default function ApplicationsPage() {
       else failures++;
     }
     if (updated.length > 0) {
-      setApplications((prev) =>
-        prev.map((a) => {
-          const u = updated.find((u) => u.id === a.id);
-          return u ?? a;
-        })
-      );
+      mutateApplications((prev) => prev?.map((a) => { const u = updated.find((u) => u.id === a.id); return u ?? a; }), { revalidate: false });
     }
     setBulkLoading(false);
     clearSelection();
@@ -229,12 +211,7 @@ export default function ApplicationsPage() {
       else failures++;
     }
     if (updated.length > 0) {
-      setApplications((prev) =>
-        prev.map((a) => {
-          const u = updated.find((u) => u.id === a.id);
-          return u ?? a;
-        })
-      );
+      mutateApplications((prev) => prev?.map((a) => { const u = updated.find((u) => u.id === a.id); return u ?? a; }), { revalidate: false });
     }
     setBulkLoading(false);
     clearSelection();

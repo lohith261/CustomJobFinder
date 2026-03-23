@@ -18,7 +18,9 @@ export async function GET() {
       include: { job: { select: JOB_SELECT } },
     });
 
-    return NextResponse.json(applications.map(serializeApplication));
+    return NextResponse.json(applications.map(serializeApplication), {
+      headers: { "Cache-Control": "private, max-age=0, stale-while-revalidate=30" },
+    });
   } catch (err) {
     console.error("GET /api/applications error:", err);
     return NextResponse.json({ error: "Failed to fetch applications" }, { status: 500 });

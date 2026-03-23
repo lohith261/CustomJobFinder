@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((r) => { if (!r.ok) throw new Error("Failed"); return r.json(); });
 import Link from "next/link";
 import type { AnalyticsData } from "@/types";
 import {
@@ -169,10 +172,12 @@ function buildCsvRows(data: AnalyticsData): string {
 }
 
 export default function AnalyticsPage() {
-  const [data, setData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [days, setDays] = useState(30);
+  const { data, isLoading: loading, error } = useSWR<AnalyticsData>(
+    `/api/analytics?days=${days}`,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60_000 }
+  );
 
   const handleExportCsv = useCallback(() => {
     if (!data) return;
@@ -186,21 +191,6 @@ export default function AnalyticsPage() {
     a.click();
     URL.revokeObjectURL(url);
   }, [data]);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(false);
-    fetch(`/api/analytics?days=${days}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("Failed");
-        return r.json();
-      })
-      .then((d: AnalyticsData) => {
-        setData(d);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, [days]);
 
   // True global empty: no jobs scraped AND no funnel activity at all
   const isGloballyEmpty =

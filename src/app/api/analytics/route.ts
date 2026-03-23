@@ -295,7 +295,9 @@ export async function GET(req: NextRequest) {
       generatedAt: new Date().toISOString(),
     };
 
-    return NextResponse.json(payload);
+    return NextResponse.json(payload, {
+      headers: { "Cache-Control": "private, max-age=0, stale-while-revalidate=60" },
+    });
   } catch (err) {
     console.error("[analytics] error:", err);
     return NextResponse.json({ error: "Failed to compute analytics" }, { status: 500 });
