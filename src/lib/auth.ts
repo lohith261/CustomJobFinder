@@ -33,12 +33,27 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) { token.id = user.id; }
+      // Refresh subscription status on sign-in or session update
+      if (user || trigger === "update") {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { subscriptionStatus: true, isAdmin: true },
+        });
+        if (dbUser) {
+          token.subscriptionStatus = dbUser.subscriptionStatus;
+          token.isAdmin = dbUser.isAdmin;
+        }
+      }
       return token;
     },
     session({ session, token }) {
-      if (session.user) { (session.user as { id?: string }).id = token.id as string; }
+      if (session.user) {
+        (session.user as { id?: string; subscriptionStatus?: string; isAdmin?: boolean }).id = token.id as string;
+        (session.user as { subscriptionStatus?: string }).subscriptionStatus = token.subscriptionStatus as string;
+        (session.user as { isAdmin?: boolean }).isAdmin = token.isAdmin as boolean;
+      }
       return session;
     },
   },
