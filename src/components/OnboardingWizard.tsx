@@ -66,7 +66,7 @@ export function OnboardingWizard({ onComplete, onDismiss }: OnboardingWizardProp
         {step === 1 && (
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
-              Welcome to Job-Tailor 👋
+              Welcome to Job Tailor 👋
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-8">
               Let&apos;s set you up in 2 minutes so we can find jobs that actually match your skills.
