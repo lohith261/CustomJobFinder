@@ -21,7 +21,7 @@ interface Props {
 }
 
 const HEADER_STYLES: Record<string, string> = {
-  indigo: "bg-indigo-50 border-indigo-200 text-indigo-700",
+  brand: "bg-brand-50 border-brand-200 text-brand-700",
   blue:   "bg-blue-50 border-blue-200 text-blue-700",
   amber:  "bg-amber-50 border-amber-200 text-amber-700",
   green:  "bg-green-50 border-green-200 text-green-700",
@@ -30,7 +30,7 @@ const HEADER_STYLES: Record<string, string> = {
 };
 
 const COUNT_STYLES: Record<string, string> = {
-  indigo: "bg-indigo-200 text-indigo-800",
+  brand: "bg-brand-200 text-brand-800",
   blue:   "bg-blue-200 text-blue-800",
   amber:  "bg-amber-200 text-amber-800",
   green:  "bg-green-200 text-green-800",

@@ -182,8 +182,8 @@ export default function PricingPage() {
           </span>
           <button
             onClick={() => setBilling(billing === "monthly" ? "annual" : "monthly")}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
-              billing === "annual" ? "bg-indigo-600" : "bg-gray-200"
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+              billing === "annual" ? "bg-brand-600" : "bg-gray-200"
             }`}
             role="switch"
             aria-checked={billing === "annual"}
@@ -244,10 +244,10 @@ export default function PricingPage() {
           </div>
 
           {/* Pro card */}
-          <div className="rounded-2xl border-2 border-indigo-500 bg-white dark:bg-gray-900 p-8 flex flex-col relative shadow-lg shadow-indigo-100 dark:shadow-none">
+          <div className="rounded-2xl border-2 border-brand-500 bg-white dark:bg-gray-900 p-8 flex flex-col relative shadow-lg shadow-brand-100 dark:shadow-none">
             {/* Most popular badge */}
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-              <span className="rounded-full bg-indigo-600 text-white text-xs font-semibold px-4 py-1">
+              <span className="rounded-full bg-brand-600 text-white text-xs font-semibold px-4 py-1">
                 Most Popular
               </span>
             </div>
@@ -271,7 +271,7 @@ export default function PricingPage() {
             <ul className="space-y-3 flex-1">
               {PRO_FEATURES.map((f) => (
                 <li key={f.label} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-600">
                     <CheckIcon className="h-3 w-3" />
                   </span>
                   <span className="text-sm text-gray-700 dark:text-gray-300">{f.label}</span>
@@ -291,7 +291,7 @@ export default function PricingPage() {
               ) : (
                 <button
                   onClick={() => setShowPayment(true)}
-                  className="w-full rounded-lg bg-indigo-600 text-white px-4 py-2.5 text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+                  className="w-full rounded-lg bg-brand-600 text-white px-4 py-2.5 text-sm font-semibold hover:bg-brand-700 transition-colors shadow-sm"
                 >
                   Upgrade to Pro
                 </button>
@@ -328,9 +328,9 @@ export default function PricingPage() {
             ) : (
               <form onSubmit={handleSubmitPayment} className="space-y-5">
                 {/* Amount */}
-                <div className="rounded-lg bg-indigo-50 dark:bg-indigo-950 border border-indigo-100 dark:border-indigo-800 px-4 py-3 text-center">
-                  <span className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">Amount: </span>
-                  <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">{amountDisplay}</span>
+                <div className="rounded-lg bg-brand-50 dark:bg-brand-950 border border-brand-100 dark:border-brand-800 px-4 py-3 text-center">
+                  <span className="text-sm text-brand-600 dark:text-brand-400 font-medium">Amount: </span>
+                  <span className="text-lg font-bold text-brand-700 dark:text-brand-300">{amountDisplay}</span>
                 </div>
 
                 {/* QR Code */}
@@ -388,7 +388,7 @@ export default function PricingPage() {
                     onChange={(e) => setTransactionId(e.target.value)}
                     placeholder="e.g. 415382748492"
                     required
-                    className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
 
@@ -401,7 +401,7 @@ export default function PricingPage() {
                 <button
                   type="submit"
                   disabled={paymentState === "submitting" || !transactionId.trim()}
-                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-indigo-600 text-white px-4 py-2.5 text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-brand-600 text-white px-4 py-2.5 text-sm font-semibold hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {paymentState === "submitting" ? (
                     <>
@@ -427,7 +427,7 @@ export default function PricingPage() {
           <div className="text-center mb-10">
             <button
               onClick={() => setShowPayment(true)}
-              className="text-sm text-indigo-600 hover:text-indigo-800 font-medium underline"
+              className="text-sm text-brand-600 hover:text-brand-800 font-medium underline"
             >
               Already paid? Submit your transaction ID
             </button>

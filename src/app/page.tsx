@@ -389,7 +389,7 @@ export default function OpportunityInbox() {
             <button
               onClick={handleScrape}
               disabled={scraping}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50 transition-colors"
             >
               {scraping ? (
                 <span className="flex items-center gap-2">
@@ -431,7 +431,7 @@ export default function OpportunityInbox() {
         {displayedJobs.length > 0 && (
           <button
             onClick={handleSelectAll}
-            className="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors flex-shrink-0"
+            className="text-xs font-medium text-brand-600 hover:text-brand-800 transition-colors flex-shrink-0"
           >
             {selectedIds.size === displayedJobs.length && displayedJobs.length > 0
               ? "Deselect all"
@@ -441,7 +441,7 @@ export default function OpportunityInbox() {
       </div>
 
       {selectedIds.size > 0 && (
-        <div className="sticky top-0 z-20 mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-white shadow-md">
+        <div className="sticky top-0 z-20 mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-white shadow-md">
           <span className="text-sm font-semibold flex-shrink-0">
             &#x2713; {selectedIds.size} selected
           </span>
@@ -498,7 +498,7 @@ export default function OpportunityInbox() {
       <div className="mt-6">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Spinner className="h-8 w-8 text-indigo-600" />
+            <Spinner className="h-8 w-8 text-brand-600" />
           </div>
         ) : displayedJobs.length === 0 ? (
           <div className="text-center py-20">
@@ -514,7 +514,7 @@ export default function OpportunityInbox() {
             {activeStatus === "all" && typeof window !== "undefined" && localStorage.getItem(ONBOARDING_DISMISSED_KEY) && !showOnboarding && (
               <button
                 onClick={() => setShowOnboarding(true)}
-                className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+                className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
               >
                 Get started
               </button>

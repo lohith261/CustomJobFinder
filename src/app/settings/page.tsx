@@ -129,7 +129,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full" />
+        <div className="animate-spin h-8 w-8 border-4 border-brand-600 border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -143,7 +143,7 @@ export default function SettingsPage() {
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Configure your job search criteria.{" "}
-            <Link href="/profile" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+            <Link href="/profile" className="text-brand-600 dark:text-brand-400 hover:underline">
               Update your profile
             </Link>{" "}
             to set your contact info.
@@ -155,7 +155,7 @@ export default function SettingsPage() {
           className={`rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors ${
             saved
               ? "bg-emerald-600"
-              : "bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+              : "bg-brand-600 hover:bg-brand-700 disabled:opacity-50"
           }`}
         >
           {saved ? "Saved!" : saving ? "Saving..." : "Save Configuration"}
@@ -182,7 +182,7 @@ export default function SettingsPage() {
                   onClick={() => setConfig({ ...config, locationType: type })}
                   className={`rounded-lg px-4 py-2 text-sm font-medium capitalize transition-colors ${
                     config.locationType === type
-                      ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700"
+                      ? "bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-700"
                       : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >
@@ -206,7 +206,7 @@ export default function SettingsPage() {
             onChange={(e) =>
               setConfig({ ...config, experienceLevel: e.target.value })
             }
-            className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 focus:border-indigo-300 dark:focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900"
+            className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 focus:border-brand-300 dark:focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-900"
           >
             <option value="">Any Level</option>
             <option value="intern">Intern</option>
@@ -233,10 +233,10 @@ export default function SettingsPage() {
                   setConfig(updated);
                   setSalaryErrors(validateSalary(newMin, updated.salaryMax));
                 }}
-                className={`w-full rounded-lg border bg-white dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 ${
+                className={`w-full rounded-lg border bg-white dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-900 ${
                   salaryErrors.salaryMin
                     ? "border-red-400 focus:border-red-400"
-                    : "border-gray-200 dark:border-gray-600 focus:border-indigo-300 dark:focus:border-indigo-500"
+                    : "border-gray-200 dark:border-gray-600 focus:border-brand-300 dark:focus:border-brand-500"
                 }`}
               />
               {salaryErrors.salaryMin && (
@@ -257,10 +257,10 @@ export default function SettingsPage() {
                   setConfig(updated);
                   setSalaryErrors(validateSalary(updated.salaryMin, newMax));
                 }}
-                className={`w-full rounded-lg border bg-white dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 ${
+                className={`w-full rounded-lg border bg-white dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-900 ${
                   salaryErrors.salaryMax
                     ? "border-red-400 focus:border-red-400"
-                    : "border-gray-200 dark:border-gray-600 focus:border-indigo-300 dark:focus:border-indigo-500"
+                    : "border-gray-200 dark:border-gray-600 focus:border-brand-300 dark:focus:border-brand-500"
                 }`}
               />
               {salaryErrors.salaryMax && (
@@ -276,7 +276,7 @@ export default function SettingsPage() {
             onChange={(e) =>
               setConfig({ ...config, companySize: e.target.value })
             }
-            className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 focus:border-indigo-300 dark:focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900"
+            className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 focus:border-brand-300 dark:focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-900"
           >
             <option value="">Any Size</option>
             <option value="startup">Startup (1-50)</option>
@@ -354,7 +354,7 @@ export default function SettingsPage() {
           className={`rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors ${
             saved
               ? "bg-emerald-600"
-              : "bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+              : "bg-brand-600 hover:bg-brand-700 disabled:opacity-50"
           }`}
         >
           {saved ? "Saved!" : saving ? "Saving..." : "Save Configuration"}

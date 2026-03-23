@@ -67,13 +67,13 @@ function ResendForm({ prefillEmail }: { prefillEmail?: string }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 placeholder:text-gray-400"
+          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-100 placeholder:text-gray-400"
         />
       </div>
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+        className="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50 transition-colors"
       >
         {loading ? "Sending…" : "Resend reset link"}
       </button>
@@ -181,7 +181,7 @@ function ResetPasswordForm() {
         {!showResend ? (
           <button
             onClick={() => setShowResend(true)}
-            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+            className="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
           >
             Request a new reset link
           </button>
@@ -202,7 +202,7 @@ function ResetPasswordForm() {
         {!showResend ? (
           <button
             onClick={() => setShowResend(true)}
-            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+            className="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
           >
             Request a new reset link
           </button>
@@ -241,7 +241,7 @@ function ResetPasswordForm() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
           minLength={8}
-          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 placeholder:text-gray-400"
+          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-100 placeholder:text-gray-400"
         />
       </div>
 
@@ -254,14 +254,14 @@ function ResetPasswordForm() {
           onChange={(e) => setConfirmPassword(e.target.value)}
           placeholder="••••••••"
           minLength={8}
-          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 placeholder:text-gray-400"
+          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-100 placeholder:text-gray-400"
         />
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+        className="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50 transition-colors"
       >
         {loading ? "Resetting…" : "Reset password"}
       </button>
@@ -270,7 +270,7 @@ function ResetPasswordForm() {
         <button
           type="button"
           onClick={() => setShowResend((v) => !v)}
-          className="text-xs text-gray-500 hover:text-indigo-600 transition-colors"
+          className="text-xs text-gray-500 hover:text-brand-600 transition-colors"
         >
           {showResend ? "Hide resend form" : "Need a new link instead?"}
         </button>
@@ -289,7 +289,7 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white text-xl font-bold mb-4">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 text-white text-xl font-bold mb-4">
             JH
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Reset your password</h1>
@@ -301,7 +301,7 @@ export default function ResetPasswordPage() {
         </Suspense>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          <Link href="/login" className="text-indigo-600 font-medium hover:underline">
+          <Link href="/login" className="text-brand-600 font-medium hover:underline">
             Back to login
           </Link>
         </p>

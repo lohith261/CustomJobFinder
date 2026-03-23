@@ -17,7 +17,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
             <p className="text-sm text-gray-500">We've been notified and are looking into it.</p>
             <button
               onClick={reset}
-              className="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+              className="px-4 py-2 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition-colors"
             >
               Try again
             </button>

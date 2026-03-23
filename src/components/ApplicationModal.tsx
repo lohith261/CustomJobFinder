@@ -160,17 +160,17 @@ function ApplicationKit({ jobId, jobUrl }: { jobId: string; jobUrl: string }) {
         <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Cover Letter</p>
         {quotaExceeded && <div className="mb-3"><UpgradePrompt feature="coverLetter" /></div>}
         <div className="flex items-center gap-2 mb-3 flex-wrap">
-          <select value={tone} onChange={(e) => setTone(e.target.value as typeof tone)} className="border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <select value={tone} onChange={(e) => setTone(e.target.value as typeof tone)} className="border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
             <option value="professional">Professional</option>
             <option value="conversational">Conversational</option>
             <option value="enthusiastic">Enthusiastic</option>
           </select>
-          <button onClick={handleGenerate} disabled={generating || !primaryResumeId} className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 disabled:opacity-60 transition-colors">
+          <button onClick={handleGenerate} disabled={generating || !primaryResumeId} className="flex items-center gap-1 px-3 py-1.5 bg-brand-600 text-white text-xs font-semibold rounded-lg hover:bg-brand-700 disabled:opacity-60 transition-colors">
             {generating ? "Generating…" : coverLetter ? "Regenerate" : "Generate Cover Letter"}
           </button>
           {coverLetter && <button onClick={() => copy(editedLetter)} className="px-3 py-1.5 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">{copied ? "✓ Copied!" : "Copy"}</button>}
           {coverLetter && editedLetter !== savedContent && (
-            <button onClick={handleSaveEdits} disabled={saving} className="px-3 py-1.5 border border-indigo-300 text-indigo-700 dark:text-indigo-400 text-xs font-medium rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 disabled:opacity-60 transition-colors">
+            <button onClick={handleSaveEdits} disabled={saving} className="px-3 py-1.5 border border-brand-300 text-brand-700 dark:text-brand-400 text-xs font-medium rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/30 disabled:opacity-60 transition-colors">
               {saving ? "Saving…" : saved ? "Saved ✓" : "Save edits"}
             </button>
           )}
@@ -181,7 +181,7 @@ function ApplicationKit({ jobId, jobUrl }: { jobId: string; jobUrl: string }) {
         {!primaryResumeId ? (
           <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg p-3">Upload a resume first.</p>
         ) : coverLetter ? (
-          <textarea value={editedLetter} onChange={(e) => setEditedLetter(e.target.value)} rows={10} className="w-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg px-3 py-2 text-xs text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+          <textarea value={editedLetter} onChange={(e) => setEditedLetter(e.target.value)} rows={10} className="w-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg px-3 py-2 text-xs text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
         ) : (
           <div className="bg-gray-50 dark:bg-gray-700/50 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center text-xs text-gray-400 dark:text-gray-500">Select a tone and click Generate.</div>
         )}
@@ -226,7 +226,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_BADGE: Record<string, string> = {
-  bookmarked: "bg-indigo-100 text-indigo-700",
+  bookmarked: "bg-brand-100 text-brand-700",
   applied: "bg-blue-100 text-blue-700",
   interview: "bg-amber-100 text-amber-700",
   offer: "bg-green-100 text-green-700",
@@ -335,7 +335,7 @@ export default function ApplicationModal({
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition-colors border-b-2 ${
                   activeTab === tab
-                    ? "border-indigo-600 text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30"
+                    ? "border-brand-600 text-brand-700 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30"
                     : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
                 }`}
               >

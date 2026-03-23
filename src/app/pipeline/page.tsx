@@ -198,8 +198,8 @@ export default function PipelinePage() {
       {/* Scheduled run info card */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center flex-shrink-0">
-            <svg className="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center flex-shrink-0">
+            <svg className="w-4 h-4 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
@@ -221,12 +221,12 @@ export default function PipelinePage() {
           {/* Threshold */}
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Min Match Score: <span className="font-bold text-indigo-600">{threshold}</span>
+              Min Match Score: <span className="font-bold text-brand-600">{threshold}</span>
             </label>
             <input
               type="range" min={0} max={100} value={threshold}
               onChange={(e) => setThreshold(Number(e.target.value))}
-              className="w-full accent-indigo-600"
+              className="w-full accent-brand-600"
             />
             <div className="flex justify-between text-xs text-gray-400 mt-1">
               <span>0</span><span>50</span><span>100</span>
@@ -240,7 +240,7 @@ export default function PipelinePage() {
             <input
               type="number" min={1} max={20} value={maxJobs}
               onChange={(e) => setMaxJobs(Math.max(1, Math.min(20, Number(e.target.value))))}
-              className="w-24 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-24 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
           {/* Tone */}
@@ -249,7 +249,7 @@ export default function PipelinePage() {
             <select
               value={tone}
               onChange={(e) => setTone(e.target.value as typeof tone)}
-              className="border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="professional">Professional</option>
               <option value="conversational">Conversational</option>
@@ -262,7 +262,7 @@ export default function PipelinePage() {
           <button
             onClick={runPipeline}
             disabled={running}
-            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 disabled:opacity-60 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 disabled:opacity-60 transition-colors"
           >
             {running ? (
               <>
@@ -304,9 +304,9 @@ export default function PipelinePage() {
         </div>
 
         {running && (
-          <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4 text-sm text-indigo-800 dark:text-indigo-300 space-y-1">
+          <div className="bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-lg p-4 text-sm text-brand-800 dark:text-brand-300 space-y-1">
             <p className="font-semibold">Pipeline running… (this takes 20–60 seconds)</p>
-            <ol className="list-decimal list-inside space-y-0.5 text-indigo-700 dark:text-indigo-400 text-xs">
+            <ol className="list-decimal list-inside space-y-0.5 text-brand-700 dark:text-brand-400 text-xs">
               <li>Scraping all job sources in parallel</li>
               <li>Selecting top-scoring jobs above threshold {threshold}</li>
               <li>Running AI resume analysis on up to {maxJobs} jobs</li>
@@ -405,7 +405,7 @@ export default function PipelinePage() {
                     <h3 className="font-semibold text-gray-900 dark:text-white truncate">{job.title}</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{job.company} {job.location ? `· ${job.location}` : ""}</p>
                     {job.application && (
-                      <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">
+                      <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 font-medium">
                         {job.application.status}
                       </span>
                     )}
@@ -439,7 +439,7 @@ export default function PipelinePage() {
                     >
                       <div className="flex items-center justify-between text-xs font-medium text-gray-600 mb-1">
                         <span>Cover Letter ({job.coverLetter.tone})</span>
-                        <span className="text-indigo-500">{expandedCoverLetter === job.id ? "Collapse ↑" : "Expand ↓"}</span>
+                        <span className="text-brand-500">{expandedCoverLetter === job.id ? "Collapse ↑" : "Expand ↓"}</span>
                       </div>
                       {expandedCoverLetter !== job.id && (
                         <p className="text-xs text-gray-500 italic line-clamp-2">{job.coverLetter.preview}…</p>
@@ -455,7 +455,7 @@ export default function PipelinePage() {
                         />
                         <button
                           onClick={() => navigator.clipboard.writeText(job.coverLetter!.content)}
-                          className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                          className="text-xs text-brand-600 hover:text-brand-800 font-medium"
                         >
                           Copy cover letter
                         </button>
@@ -470,7 +470,7 @@ export default function PipelinePage() {
                     href={job.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-brand-600 text-white text-xs font-semibold rounded-lg hover:bg-brand-700 transition-colors"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -504,7 +504,7 @@ export default function PipelinePage() {
                 onClick={() => setHistoryFilter(f)}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                   historyFilter === f
-                    ? "bg-indigo-600 text-white"
+                    ? "bg-brand-600 text-white"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
                 }`}
               >

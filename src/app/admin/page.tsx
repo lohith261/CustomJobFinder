@@ -261,7 +261,7 @@ export default function AdminPage() {
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-white text-xs font-bold">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-white text-xs font-bold">
                 JH
               </div>
               <span className="text-sm text-gray-500">Job Tailor</span>
@@ -288,7 +288,7 @@ export default function AdminPage() {
           </div>
           <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
             <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">MRR (est.)</p>
-            <p className="text-3xl font-bold text-indigo-600">{computeMrr()}</p>
+            <p className="text-3xl font-bold text-brand-600">{computeMrr()}</p>
           </div>
         </div>
 

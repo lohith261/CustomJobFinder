@@ -151,7 +151,7 @@ export interface ApplicationData {
 }
 
 export const KANBAN_COLUMNS = [
-  { status: "bookmarked",    label: "Bookmarked",    color: "indigo" },
+  { status: "bookmarked",    label: "Bookmarked",    color: "brand" },
   { status: "applied",       label: "Applied",       color: "blue"   },
   { status: "interview",     label: "Interview",     color: "amber"  },
   { status: "offer",         label: "Offer",         color: "green"  },

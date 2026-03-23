@@ -39,7 +39,7 @@ export function OnboardingWizard({ onComplete, onDismiss }: OnboardingWizardProp
               return (
                 <span
                   key={dotStep}
-                  className="w-2.5 h-2.5 rounded-full bg-indigo-600"
+                  className="w-2.5 h-2.5 rounded-full bg-brand-600"
                 />
               );
             } else if (dotStep === step) {
@@ -47,7 +47,7 @@ export function OnboardingWizard({ onComplete, onDismiss }: OnboardingWizardProp
               return (
                 <span
                   key={dotStep}
-                  className="w-2.5 h-2.5 rounded-full ring-2 ring-indigo-600 ring-offset-2 dark:ring-offset-gray-900 bg-indigo-600"
+                  className="w-2.5 h-2.5 rounded-full ring-2 ring-brand-600 ring-offset-2 dark:ring-offset-gray-900 bg-brand-600"
                 />
               );
             } else {
@@ -80,7 +80,7 @@ export function OnboardingWizard({ onComplete, onDismiss }: OnboardingWizardProp
               </button>
               <button
                 onClick={goNext}
-                className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+                className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
               >
                 Let&apos;s go →
               </button>
@@ -112,7 +112,7 @@ export function OnboardingWizard({ onComplete, onDismiss }: OnboardingWizardProp
                 </button>
                 <button
                   onClick={handleSetupSearch}
-                  className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+                  className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
                 >
                   Set up Search Config
                 </button>
@@ -145,7 +145,7 @@ export function OnboardingWizard({ onComplete, onDismiss }: OnboardingWizardProp
                 </button>
                 <button
                   onClick={handleUploadResume}
-                  className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+                  className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
                 >
                   Upload Resume
                 </button>
@@ -171,7 +171,7 @@ export function OnboardingWizard({ onComplete, onDismiss }: OnboardingWizardProp
               </button>
               <button
                 onClick={onComplete}
-                className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+                className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
               >
                 Start exploring →
               </button>

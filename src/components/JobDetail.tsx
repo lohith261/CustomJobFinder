@@ -141,7 +141,7 @@ export function JobDetail({ job, onStatusChange }: JobDetailProps) {
           href={job.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
         >
           View Original
           <ExternalLinkIcon className="h-3.5 w-3.5" />
@@ -153,7 +153,7 @@ export function JobDetail({ job, onStatusChange }: JobDetailProps) {
           }
           className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
             job.status === "saved"
-              ? "border-indigo-200 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-700 dark:text-indigo-400"
+              ? "border-brand-200 bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:border-brand-700 dark:text-brand-400"
               : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
           }`}
         >

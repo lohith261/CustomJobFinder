@@ -33,7 +33,7 @@ function VerifyContent() {
           <><div className="text-4xl">✅</div><h2 className="text-lg font-semibold text-gray-900">Email verified!</h2><p className="text-sm text-gray-500">Redirecting you to the app…</p></>
         )}
         {status === "error" && (
-          <><div className="text-4xl">❌</div><h2 className="text-lg font-semibold text-gray-900">Verification failed</h2><p className="text-sm text-gray-500">{message}</p><Link href="/login" className="inline-block mt-2 text-indigo-600 text-sm font-medium hover:underline">Back to login →</Link></>
+          <><div className="text-4xl">❌</div><h2 className="text-lg font-semibold text-gray-900">Verification failed</h2><p className="text-sm text-gray-500">{message}</p><Link href="/login" className="inline-block mt-2 text-brand-600 text-sm font-medium hover:underline">Back to login →</Link></>
         )}
       </div>
     </div>

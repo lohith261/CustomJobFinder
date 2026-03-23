@@ -199,13 +199,13 @@ function SearchProfileSwitcher() {
                 onClick={() => !profile.isActive && handleActivate(profile.id)}
                 className={`flex items-center justify-between px-3 py-2 text-sm cursor-pointer transition-colors ${
                   profile.isActive
-                    ? "bg-indigo-50 text-indigo-700 font-medium cursor-default"
+                    ? "bg-brand-50 text-brand-700 font-medium cursor-default"
                     : "text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 <span className="truncate flex-1">{profile.name}</span>
                 {profile.isActive && (
-                  <svg className="h-3.5 w-3.5 flex-shrink-0 text-indigo-600 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="h-3.5 w-3.5 flex-shrink-0 text-brand-600 ml-1" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
                   </svg>
                 )}
@@ -224,7 +224,7 @@ function SearchProfileSwitcher() {
             ))}
             <div
               onClick={handleCreate}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 cursor-pointer border-t border-gray-100 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-brand-600 hover:bg-brand-50 cursor-pointer border-t border-gray-100 transition-colors"
             >
               <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -300,7 +300,7 @@ function SourceHealthIndicator() {
     <div className="px-3 py-2 flex items-center gap-2 text-xs text-gray-500">
       <span className={`inline-block h-2 w-2 rounded-full flex-shrink-0 ${dotColor}`} />
       <span>{label}</span>
-      <Link href="/status" className="ml-auto text-indigo-500 hover:text-indigo-700 whitespace-nowrap">
+      <Link href="/status" className="ml-auto text-brand-500 hover:text-brand-700 whitespace-nowrap">
         details →
       </Link>
     </div>
@@ -348,7 +348,7 @@ export function Sidebar() {
   const sidebarContent = (
     <>
       <div className="flex h-16 items-center gap-2 border-b border-gray-200 dark:border-gray-800 px-6 flex-shrink-0">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white text-sm font-bold">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white text-sm font-bold">
           {initials}
         </div>
         <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">Job Tailor</span>
@@ -381,7 +381,7 @@ export function Sidebar() {
               href={item.href}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                  ? "bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300"
                   : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100"
               }`}
             >
@@ -403,7 +403,7 @@ export function Sidebar() {
           ) : (
             <Link
               href="/pricing"
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition-colors border border-indigo-200 mt-2 mb-1"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-brand-600 hover:bg-brand-50 transition-colors border border-brand-200 mt-2 mb-1"
             >
               <span>⚡</span>
               Upgrade to Pro
@@ -437,7 +437,7 @@ export function Sidebar() {
           </svg>
         </button>
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-white text-xs font-bold">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-white text-xs font-bold">
             JH
           </div>
           <span className="text-base font-semibold text-gray-900">Job Tailor</span>

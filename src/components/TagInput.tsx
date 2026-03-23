@@ -43,7 +43,7 @@ export function TagInput({
   const listId = datalistId ?? (suggestions ? `taglist-${Math.random().toString(36).slice(2)}` : undefined);
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-100 dark:focus-within:ring-indigo-900">
+    <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 focus-within:border-brand-300 focus-within:ring-2 focus-within:ring-brand-100 dark:focus-within:ring-brand-900">
       {suggestions && listId && (
         <datalist id={listId}>
           {suggestions.map((s) => (
@@ -54,13 +54,13 @@ export function TagInput({
       {tags.map((tag, i) => (
         <span
           key={`${tag}-${i}`}
-          className="inline-flex items-center gap-1 rounded-md bg-indigo-50 dark:bg-indigo-900/40 px-2 py-1 text-xs font-medium text-indigo-700 dark:text-indigo-300"
+          className="inline-flex items-center gap-1 rounded-md bg-brand-50 dark:bg-brand-900/40 px-2 py-1 text-xs font-medium text-brand-700 dark:text-brand-300"
         >
           {tag}
           <button
             type="button"
             onClick={() => removeTag(i)}
-            className="text-indigo-400 hover:text-indigo-600 dark:text-indigo-500 dark:hover:text-indigo-300"
+            className="text-brand-400 hover:text-brand-600 dark:text-brand-500 dark:hover:text-brand-300"
           >
             &times;
           </button>

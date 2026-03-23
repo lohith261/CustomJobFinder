@@ -120,20 +120,20 @@ export default function LandingPage() {
           {/* Logo */}
           <Link href="/landing" className="flex items-center gap-2">
             <span className="text-xl">🎯</span>
-            <span className="text-lg font-bold text-indigo-600">Job Tailor</span>
+            <span className="text-lg font-bold text-brand-600">Job Tailor</span>
           </Link>
 
           {/* Desktop nav */}
           <nav className="hidden items-center gap-6 sm:flex">
             <a
               href="#features"
-              className="text-sm font-medium text-gray-600 transition-colors hover:text-indigo-600"
+              className="text-sm font-medium text-gray-600 transition-colors hover:text-brand-600"
             >
               Features
             </a>
             <a
               href="#pricing"
-              className="text-sm font-medium text-gray-600 transition-colors hover:text-indigo-600"
+              className="text-sm font-medium text-gray-600 transition-colors hover:text-brand-600"
             >
               Pricing
             </a>
@@ -143,13 +143,13 @@ export default function LandingPage() {
           <div className="hidden items-center gap-3 sm:flex">
             <Link
               href="/login"
-              className="text-sm font-medium text-gray-600 transition-colors hover:text-indigo-600"
+              className="text-sm font-medium text-gray-600 transition-colors hover:text-brand-600"
             >
               Sign in
             </Link>
             <Link
               href="/signup"
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
             >
               Start free →
             </Link>
@@ -178,26 +178,26 @@ export default function LandingPage() {
               <a
                 href="#features"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-medium text-gray-700 hover:text-indigo-600"
+                className="text-sm font-medium text-gray-700 hover:text-brand-600"
               >
                 Features
               </a>
               <a
                 href="#pricing"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-medium text-gray-700 hover:text-indigo-600"
+                className="text-sm font-medium text-gray-700 hover:text-brand-600"
               >
                 Pricing
               </a>
               <Link
                 href="/login"
-                className="text-sm font-medium text-gray-700 hover:text-indigo-600"
+                className="text-sm font-medium text-gray-700 hover:text-brand-600"
               >
                 Sign in
               </Link>
               <Link
                 href="/signup"
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-indigo-700"
+                className="rounded-lg bg-brand-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-brand-700"
               >
                 Start free →
               </Link>
@@ -207,23 +207,23 @@ export default function LandingPage() {
       </header>
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-indigo-50/60 to-white pb-16 pt-20 text-center sm:pb-24 sm:pt-28">
+      <section className="relative overflow-hidden bg-gradient-to-b from-brand-50/60 to-white pb-16 pt-20 text-center sm:pb-24 sm:pt-28">
         {/* Background decoration */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
         >
-          <div className="absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-indigo-100 opacity-40 blur-3xl" />
+          <div className="absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-brand-100 opacity-40 blur-3xl" />
         </div>
 
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <div className="mb-6 inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-xs font-semibold text-indigo-700">
+          <div className="mb-6 inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-4 py-1.5 text-xs font-semibold text-brand-700">
             🎯 Built for Indian job seekers
           </div>
 
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
             Find jobs that fit.{" "}
-            <span className="text-indigo-600">Apply with confidence.</span>
+            <span className="text-brand-600">Apply with confidence.</span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-600 sm:text-xl">
@@ -236,13 +236,13 @@ export default function LandingPage() {
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href="/signup"
-              className="w-full max-w-xs rounded-xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-700 hover:shadow-indigo-300 sm:w-auto"
+              className="w-full max-w-xs rounded-xl bg-brand-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-200 transition-all hover:bg-brand-700 hover:shadow-brand-300 sm:w-auto"
             >
               Start free — no card needed
             </Link>
             <a
               href="#features"
-              className="w-full max-w-xs rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-base font-semibold text-gray-700 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 sm:w-auto"
+              className="w-full max-w-xs rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-base font-semibold text-gray-700 transition-all hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700 sm:w-auto"
             >
               See how it works
             </a>
@@ -256,7 +256,7 @@ export default function LandingPage() {
             </span>
             <span className="hidden text-gray-300 sm:block">·</span>
             <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
               AI-powered scoring
             </span>
             <span className="hidden text-gray-300 sm:block">·</span>
@@ -290,9 +290,9 @@ export default function LandingPage() {
             {FEATURES.map((feature) => (
               <div
                 key={feature.title}
-                className="group rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md"
+                className="group rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:border-brand-200 hover:shadow-md"
               >
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-2xl transition-colors group-hover:bg-indigo-100">
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-2xl transition-colors group-hover:bg-brand-100">
                   {feature.icon}
                 </div>
                 <h3 className="mb-2 text-base font-bold text-gray-900">
@@ -308,7 +308,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── How it works ── */}
-      <section className="bg-indigo-50/40 py-20 sm:py-28">
+      <section className="bg-brand-50/40 py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="text-center">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -326,12 +326,12 @@ export default function LandingPage() {
                 {index < HOW_IT_WORKS.length - 1 && (
                   <div
                     aria-hidden="true"
-                    className="absolute left-full top-6 hidden h-0.5 w-full -translate-y-1/2 bg-indigo-200 lg:block"
+                    className="absolute left-full top-6 hidden h-0.5 w-full -translate-y-1/2 bg-brand-200 lg:block"
                     style={{ width: "calc(100% - 3rem)", left: "calc(100% - 0.5rem)" }}
                   />
                 )}
                 <div className="rounded-2xl border border-white bg-white p-6 shadow-sm">
-                  <div className="mb-4 text-sm font-bold text-indigo-600 opacity-60">
+                  <div className="mb-4 text-sm font-bold text-brand-600 opacity-60">
                     {item.step}
                   </div>
                   <h3 className="mb-2 text-base font-bold text-gray-900">
@@ -398,9 +398,9 @@ export default function LandingPage() {
             </div>
 
             {/* Pro card */}
-            <div className="relative flex flex-col rounded-2xl border-2 border-indigo-500 bg-white p-8 shadow-lg shadow-indigo-100">
+            <div className="relative flex flex-col rounded-2xl border-2 border-brand-500 bg-white p-8 shadow-lg shadow-brand-100">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                <span className="rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white">
+                <span className="rounded-full bg-brand-600 px-4 py-1 text-xs font-semibold text-white">
                   Most Popular
                 </span>
               </div>
@@ -419,7 +419,7 @@ export default function LandingPage() {
               <ul className="flex-1 space-y-3">
                 {PRO_FEATURES.map((feature) => (
                   <li key={feature} className="flex items-start gap-3">
-                    <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                    <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-600">
                       <CheckIcon />
                     </span>
                     <span className="text-sm text-gray-700">{feature}</span>
@@ -430,7 +430,7 @@ export default function LandingPage() {
               <div className="mt-8">
                 <Link
                   href="/signup"
-                  className="block w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
+                  className="block w-full rounded-lg bg-brand-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
                 >
                   Start free → upgrade anytime
                 </Link>
@@ -442,7 +442,7 @@ export default function LandingPage() {
           <div className="mt-12 text-center">
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-700 hover:shadow-indigo-300"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-brand-200 transition-all hover:bg-brand-700 hover:shadow-brand-300"
             >
               Start free today
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
@@ -471,7 +471,7 @@ export default function LandingPage() {
             {/* Counter visual */}
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <div className="flex flex-col items-center rounded-xl border border-gray-100 bg-gray-50 px-8 py-4">
-                <span className="text-3xl font-extrabold text-indigo-600">
+                <span className="text-3xl font-extrabold text-brand-600">
                   &lt;100
                 </span>
                 <span className="mt-1 text-xs font-medium text-gray-500">
@@ -479,7 +479,7 @@ export default function LandingPage() {
                 </span>
               </div>
               <div className="flex flex-col items-center rounded-xl border border-gray-100 bg-gray-50 px-8 py-4">
-                <span className="text-3xl font-extrabold text-indigo-600">
+                <span className="text-3xl font-extrabold text-brand-600">
                   6
                 </span>
                 <span className="mt-1 text-xs font-medium text-gray-500">
@@ -487,7 +487,7 @@ export default function LandingPage() {
                 </span>
               </div>
               <div className="flex flex-col items-center rounded-xl border border-gray-100 bg-gray-50 px-8 py-4">
-                <span className="text-3xl font-extrabold text-indigo-600">
+                <span className="text-3xl font-extrabold text-brand-600">
                   Free
                 </span>
                 <span className="mt-1 text-xs font-medium text-gray-500">
@@ -499,7 +499,7 @@ export default function LandingPage() {
             <div className="mt-8">
               <Link
                 href="/signup"
-                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-indigo-700"
+                className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-700"
               >
                 Claim your spot →
               </Link>
@@ -516,7 +516,7 @@ export default function LandingPage() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl">🎯</span>
-                <span className="text-base font-bold text-indigo-600">
+                <span className="text-base font-bold text-brand-600">
                   Job Tailor
                 </span>
               </div>
@@ -529,25 +529,25 @@ export default function LandingPage() {
             <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 sm:justify-end">
               <a
                 href="#features"
-                className="text-sm text-gray-500 transition-colors hover:text-indigo-600"
+                className="text-sm text-gray-500 transition-colors hover:text-brand-600"
               >
                 Features
               </a>
               <a
                 href="#pricing"
-                className="text-sm text-gray-500 transition-colors hover:text-indigo-600"
+                className="text-sm text-gray-500 transition-colors hover:text-brand-600"
               >
                 Pricing
               </a>
               <Link
                 href="/login"
-                className="text-sm text-gray-500 transition-colors hover:text-indigo-600"
+                className="text-sm text-gray-500 transition-colors hover:text-brand-600"
               >
                 Sign in
               </Link>
               <Link
                 href="/signup"
-                className="text-sm text-gray-500 transition-colors hover:text-indigo-600"
+                className="text-sm text-gray-500 transition-colors hover:text-brand-600"
               >
                 Sign up
               </Link>

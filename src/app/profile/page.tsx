@@ -88,7 +88,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full" />
+        <div className="animate-spin h-8 w-8 border-4 border-brand-600 border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -109,7 +109,7 @@ export default function ProfilePage() {
       </div>
 
       {mode === "upload" && (
-        <div className="rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50 p-10 text-center">
+        <div className="rounded-2xl border-2 border-dashed border-brand-200 bg-brand-50 p-10 text-center">
           <div className="text-5xl mb-4">📄</div>
           <h2 className="text-lg font-semibold text-gray-900 mb-1">Upload your resume to auto-fill</h2>
           <p className="text-sm text-gray-500 mb-6">
@@ -119,7 +119,7 @@ export default function ProfilePage() {
             <button
               onClick={() => fileRef.current?.click()}
               disabled={extracting}
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50 transition-colors"
             >
               {extracting ? (
                 <>
@@ -137,7 +137,7 @@ export default function ProfilePage() {
             </button>
             <button
               onClick={() => setMode("form")}
-              className="text-sm text-indigo-600 hover:text-indigo-800 underline underline-offset-2"
+              className="text-sm text-brand-600 hover:text-brand-800 underline underline-offset-2"
             >
               I don't have a resume — fill manually
             </button>
@@ -162,7 +162,7 @@ export default function ProfilePage() {
             <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Contact Information</h2>
             <button
               onClick={() => setMode("upload")}
-              className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+              className="text-xs text-brand-600 hover:text-brand-800 flex items-center gap-1"
             >
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -188,7 +188,7 @@ export default function ProfilePage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className={`rounded-lg px-6 py-2.5 text-sm font-medium text-white transition-colors ${saved ? "bg-emerald-600" : "bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"}`}
+              className={`rounded-lg px-6 py-2.5 text-sm font-medium text-white transition-colors ${saved ? "bg-emerald-600" : "bg-brand-600 hover:bg-brand-700 disabled:opacity-50"}`}
             >
               {saved ? "Saved!" : saving ? "Saving..." : "Save Profile"}
             </button>
@@ -211,7 +211,7 @@ function Field({ label, placeholder, value, onChange, type = "text" }: {
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 placeholder:text-gray-400"
+        className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-100 placeholder:text-gray-400"
       />
     </div>
   );

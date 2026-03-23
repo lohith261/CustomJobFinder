@@ -71,7 +71,7 @@ function EmailCard({
         className="w-full px-5 py-4 flex items-center gap-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
       >
         {/* Logo placeholder */}
-        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
           {record.companyName.charAt(0).toUpperCase()}
         </div>
 
@@ -86,7 +86,7 @@ function EmailCard({
             <span className="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0" title="Replied" />
           )}
           {info.industry && (
-            <span className="hidden sm:inline-flex text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-medium">
+            <span className="hidden sm:inline-flex text-xs bg-brand-50 text-brand-600 px-2 py-0.5 rounded-full font-medium">
               {info.industry}
             </span>
           )}
@@ -119,7 +119,7 @@ function EmailCard({
                   <ul className="space-y-1">
                     {info.highlights.map((h, i) => (
                       <li key={i} className="flex items-start gap-1.5 text-sm text-gray-700 dark:text-gray-300">
-                        <span className="text-indigo-400 mt-0.5">→</span>
+                        <span className="text-brand-400 mt-0.5">→</span>
                         {h}
                       </li>
                     ))}
@@ -194,7 +194,7 @@ function EmailCard({
             <div className="flex items-center gap-2 flex-wrap pt-1">
               <button
                 onClick={() => copy(`Subject: ${record.emailSubject}\n\n${record.emailBody}`, "body")}
-                className="flex items-center gap-1.5 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg px-4 py-2 font-medium transition-colors"
+                className="flex items-center gap-1.5 text-sm text-white bg-brand-600 hover:bg-brand-700 rounded-lg px-4 py-2 font-medium transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -213,7 +213,7 @@ function EmailCard({
               <button
                 onClick={() => onRegenerate(record)}
                 disabled={regeneratingId === record.id}
-                className="flex items-center gap-1.5 text-sm text-indigo-600 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 rounded-lg px-4 py-2 font-medium transition-colors disabled:opacity-60"
+                className="flex items-center gap-1.5 text-sm text-brand-600 bg-brand-50 border border-brand-200 hover:bg-brand-100 rounded-lg px-4 py-2 font-medium transition-colors disabled:opacity-60"
                 title="Regenerate this email (uses the current tone selection)"
               >
                 {regeneratingId === record.id ? (

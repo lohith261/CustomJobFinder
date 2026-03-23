@@ -132,7 +132,7 @@ export function JobCard({
               checked={selected ?? false}
               onChange={(e) => { e.stopPropagation(); onToggleSelect(job.id); }}
               onClick={(e) => e.stopPropagation()}
-              className="mt-1 h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500 cursor-pointer flex-shrink-0"
+              className="mt-1 h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-brand-600 focus:ring-brand-500 cursor-pointer flex-shrink-0"
             />
           )}
           <div className="min-w-0 flex-1">
@@ -314,7 +314,7 @@ export function JobCard({
                 ? "text-green-600 bg-green-50 dark:bg-green-900/30"
                 : trackError
                 ? "text-red-500 bg-red-50 dark:bg-red-900/30"
-                : "text-gray-500 dark:text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-400"
+                : "text-gray-500 dark:text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/30 dark:hover:text-brand-400"
             }`}
           >
             <BookmarkIcon className="h-3.5 w-3.5" />
@@ -352,7 +352,7 @@ export function JobCard({
                 value={note}
                 onChange={(e) => onNoteChange(job.id, e.target.value)}
                 placeholder="Add a quick note about this job…"
-                className="w-full resize-none rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-3 py-2 text-xs text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:border-indigo-300 focus:bg-white dark:focus:bg-gray-600 focus:outline-none focus:ring-1 focus:ring-indigo-200 transition-colors"
+                className="w-full resize-none rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-3 py-2 text-xs text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:border-brand-300 focus:bg-white dark:focus:bg-gray-600 focus:outline-none focus:ring-1 focus:ring-brand-200 transition-colors"
               />
             </div>
           )}
@@ -379,7 +379,7 @@ function QuickAction({
       }}
       className={`flex-1 py-2 text-xs font-medium transition-colors ${
         active
-          ? "text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-400"
+          ? "text-brand-600 bg-brand-50 dark:bg-brand-900/30 dark:text-brand-400"
           : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
       }`}
     >

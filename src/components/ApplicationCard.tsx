@@ -60,7 +60,7 @@ export default function ApplicationCard({ application, onClick, onDragStart, sel
       onClick={handleClick}
       className={`relative bg-white dark:bg-gray-800 rounded-xl border p-4 shadow-sm cursor-pointer hover:shadow-md transition-all select-none active:opacity-75 active:scale-95 ${
         selected
-          ? "border-indigo-400 dark:border-indigo-500 ring-2 ring-indigo-300 dark:ring-indigo-600"
+          ? "border-brand-400 dark:border-brand-500 ring-2 ring-brand-300 dark:ring-brand-600"
           : urgency === "overdue"
           ? "border-red-200 dark:border-red-700 hover:border-red-300 dark:hover:border-red-600"
           : urgency === "soon"
@@ -73,7 +73,7 @@ export default function ApplicationCard({ application, onClick, onDragStart, sel
         <div className="absolute top-3 right-3 z-10">
           <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
             selected
-              ? "bg-indigo-600 border-indigo-600"
+              ? "bg-brand-600 border-brand-600"
               : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-500"
           }`}>
             {selected && (

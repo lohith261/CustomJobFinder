@@ -303,14 +303,14 @@ export default function ApplicationsPage() {
               placeholder="Search applications…"
               value={kanbanSearch}
               onChange={(e) => setKanbanSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 dark:placeholder-gray-500"
+              className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 placeholder-gray-400 dark:placeholder-gray-500"
             />
           </div>
           <button
             onClick={toggleSelectMode}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm border ${
               selectMode
-                ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-600"
+                ? "bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 border-brand-300 dark:border-brand-600"
                 : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
             }`}
           >
@@ -338,7 +338,7 @@ export default function ApplicationsPage() {
             const count = counts[status] ?? 0;
             if (count === 0) return null;
             const badgeColors: Record<string, string> = {
-              indigo: "bg-indigo-100 text-indigo-700",
+              brand: "bg-brand-100 text-brand-700",
               blue: "bg-blue-100 text-blue-700",
               amber: "bg-amber-100 text-amber-700",
               green: "bg-green-100 text-green-700",

@@ -128,13 +128,13 @@ export function FilterBar({
                 onClick={() => onStatusChange(s.key)}
                 className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300"
+                    ? "bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300"
                     : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600"
                 }`}
               >
                 {s.label}
                 <span
-                  className={`text-xs ${isActive ? "text-indigo-500 dark:text-indigo-400" : "text-gray-400 dark:text-gray-500"}`}
+                  className={`text-xs ${isActive ? "text-brand-500 dark:text-brand-400" : "text-gray-400 dark:text-gray-500"}`}
                 >
                   {count}
                 </span>
@@ -182,14 +182,14 @@ export function FilterBar({
               setSearchValue(e.target.value);
               onSearchChange(e.target.value);
             }}
-            className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 pl-10 pr-4 text-sm text-gray-900 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900"
+            className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 pl-10 pr-4 text-sm text-gray-900 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-900"
           />
         </div>
 
         <select
           value={sourceValueProp ?? ""}
           onChange={(e) => onSourceChange(e.target.value)}
-          className="rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          className="rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-100"
         >
           <option value="">All Sources</option>
           {sources.map((source) => (
@@ -202,7 +202,7 @@ export function FilterBar({
         <select
           value={sortBy}
           onChange={(e) => onSortChange(e.target.value as SortBy)}
-          className="rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          className="rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-100"
           aria-label="Sort jobs by"
         >
           <option value="date">Sort: Date</option>
@@ -222,7 +222,7 @@ export function FilterBar({
                 aria-label="Save current filters"
                 className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                   canSaveMore
-                    ? "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600 dark:hover:bg-indigo-900/20"
+                    ? "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-brand-50 hover:border-brand-300 hover:text-brand-600 dark:hover:bg-brand-900/20"
                     : "border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-not-allowed"
                 }`}
               >
@@ -241,16 +241,16 @@ export function FilterBar({
                   }}
                   onKeyDown={handleNameKeyDown}
                   placeholder="Filter name…"
-                  className={`w-36 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 ${
+                  className={`w-36 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-900 ${
                     saveError
                       ? "border-red-400 focus:border-red-400"
-                      : "border-indigo-300 focus:border-indigo-400 dark:border-indigo-600"
+                      : "border-brand-300 focus:border-brand-400 dark:border-brand-600"
                   } bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200`}
                   aria-label="Saved filter name"
                 />
                 <button
                   onClick={handleConfirmSave}
-                  className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+                  className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
                   aria-label="Confirm save"
                 >
                   Save
@@ -301,11 +301,11 @@ function SavedFilterChip({
   return (
     <span
       role="listitem"
-      className="inline-flex items-center gap-0.5 rounded-full border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-medium"
+      className="inline-flex items-center gap-0.5 rounded-full border border-brand-200 dark:border-brand-700 bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 text-xs font-medium"
     >
       <button
         onClick={() => onApply?.(filter)}
-        className="pl-2.5 pr-1 py-1 hover:text-indigo-900 dark:hover:text-indigo-100 transition-colors truncate max-w-[140px]"
+        className="pl-2.5 pr-1 py-1 hover:text-brand-900 dark:hover:text-brand-100 transition-colors truncate max-w-[140px]"
         title={`Apply: ${filter.name}`}
       >
         {filter.name}
@@ -313,7 +313,7 @@ function SavedFilterChip({
       {onDelete && (
         <button
           onClick={() => onDelete(filter.id)}
-          className="pr-1.5 py-1 text-indigo-400 dark:text-indigo-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+          className="pr-1.5 py-1 text-brand-400 dark:text-brand-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
           aria-label={`Delete saved filter "${filter.name}"`}
           title="Delete"
         >

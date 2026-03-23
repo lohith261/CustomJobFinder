@@ -15,7 +15,7 @@ import type {
 // ── Color maps ───────────────────────────────────────────────────────────────
 
 const FUNNEL_COLORS: Record<string, string> = {
-  indigo: "#6366f1",
+  brand: "#6366f1",
   blue:   "#3b82f6",
   amber:  "#f59e0b",
   green:  "#22c55e",
@@ -445,7 +445,7 @@ export function ScoreTrendChart({ weeks }: ScoreTrendChartProps) {
         <div className="flex gap-6">
           <div>
             <p className="text-xs text-gray-400 dark:text-gray-500">Avg Score</p>
-            <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{weeks[activeIndex].avgScore}%</p>
+            <p className="text-lg font-bold text-brand-600 dark:text-brand-400">{weeks[activeIndex].avgScore}%</p>
           </div>
           <div>
             <p className="text-xs text-gray-400 dark:text-gray-500">Jobs Scraped</p>
@@ -487,7 +487,7 @@ export function TopListChart({ titles, companies }: TopListChartProps) {
             onClick={() => handleTabChange(t)}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
               tab === t
-                ? "bg-indigo-50 text-indigo-700"
+                ? "bg-brand-50 text-brand-700"
                 : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
             }`}
           >
@@ -514,16 +514,16 @@ export function TopListChart({ titles, companies }: TopListChartProps) {
                 <button
                   onClick={() => setActiveEntry(isActive ? null : entry)}
                   className={`w-full flex items-center gap-3 px-2 py-1.5 rounded-lg transition-colors text-left ${
-                    isActive ? "bg-indigo-50 dark:bg-indigo-900/20" : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                    isActive ? "bg-brand-50 dark:bg-brand-900/20" : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
                   }`}
                 >
                   <span className="text-xs text-gray-400 w-5 flex-shrink-0 text-right">{i + 1}</span>
-                  <span className={`flex-1 text-sm truncate min-w-0 ${isActive ? "text-indigo-700 dark:text-indigo-400 font-medium" : "text-gray-800 dark:text-gray-200"}`} title={entry.name}>
+                  <span className={`flex-1 text-sm truncate min-w-0 ${isActive ? "text-brand-700 dark:text-brand-400 font-medium" : "text-gray-800 dark:text-gray-200"}`} title={entry.name}>
                     {entry.name}
                   </span>
                   <div className="w-16 h-2 bg-gray-100 dark:bg-gray-700 rounded-full flex-shrink-0 overflow-hidden">
                     <div
-                      className="h-full bg-indigo-400 rounded-full"
+                      className="h-full bg-brand-400 rounded-full"
                       style={{ width: `${Math.round((entry.count / maxCount) * 100)}%` }}
                     />
                   </div>
@@ -541,7 +541,7 @@ export function TopListChart({ titles, companies }: TopListChartProps) {
                       </div>
                       <div>
                         <p className="text-xs text-gray-400 dark:text-gray-500">Avg Match Score</p>
-                        <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{entry.avgScore}%</p>
+                        <p className="text-lg font-bold text-brand-600 dark:text-brand-400">{entry.avgScore}%</p>
                       </div>
                     </div>
                     <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
@@ -696,7 +696,7 @@ export function SourceConversionTable({ sources }: SourceConversionTableProps) {
                   onClick={() => setActiveSource(isActive ? null : s.source)}
                   className={`cursor-pointer transition-colors ${
                     isActive
-                      ? "bg-indigo-50 dark:bg-indigo-900/20"
+                      ? "bg-brand-50 dark:bg-brand-900/20"
                       : "hover:bg-gray-50 dark:hover:bg-gray-700/30"
                   }`}
                   title="Click to see breakdown"
@@ -705,7 +705,7 @@ export function SourceConversionTable({ sources }: SourceConversionTableProps) {
                     <span className="flex items-center gap-1.5">
                       {s.source}
                       {isActive && (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-brand-500" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                         </svg>
                       )}
@@ -744,7 +744,7 @@ export function SourceConversionTable({ sources }: SourceConversionTableProps) {
         >
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: "Total Jobs", value: activeSrc.totalJobs, color: "text-indigo-600 dark:text-indigo-400" },
+              { label: "Total Jobs", value: activeSrc.totalJobs, color: "text-brand-600 dark:text-brand-400" },
               { label: "Applied", value: activeSrc.appliedCount, color: "text-blue-600 dark:text-blue-400" },
               { label: "Interviews", value: activeSrc.interviewCount, color: "text-amber-600 dark:text-amber-400" },
             ].map(({ label, value, color }) => (
