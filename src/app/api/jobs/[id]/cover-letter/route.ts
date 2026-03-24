@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { generateCoverLetter } from "@/lib/ai/cover-letter";
 import { getRequiredUserId } from "@/lib/auth-helpers";
 import { checkQuota } from "@/lib/quota";
+import { checkAiRateLimit } from "@/lib/rate-limit";
 
 export async function GET(
   _req: NextRequest,
@@ -87,6 +88,14 @@ export async function POST(
     const auth = await getRequiredUserId();
     if ("error" in auth) return auth.error;
     const { userId } = auth;
+
+    const rateLimit = await checkAiRateLimit(userId);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "rate_limited", message: `Too many requests. Please wait ${rateLimit.retryAfterSec}s before trying again.` },
+        { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSec) } }
+      );
+    }
 
     const quota = await checkQuota(userId, "coverLetter");
     if (!quota.allowed) {

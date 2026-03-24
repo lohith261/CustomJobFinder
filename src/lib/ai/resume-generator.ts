@@ -259,47 +259,24 @@ function generateFallback(input: GenerateResumeInput): GeneratedResumeData {
   };
 }
 
-// ─── Grok API call ────────────────────────────────────────────────────────────
+// ─── OpenRouter API call ───────────────────────────────────────────────────────
 
-async function callGrok(prompt: string): Promise<string> {
-  const apiKey = process.env.GROK_API_KEY;
-  if (!apiKey) throw new Error("GROK_API_KEY not set");
-
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      max_tokens: 4096,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Grok API error ${res.status}: ${body}`);
-  }
-
-  const data = (await res.json()) as {
-    choices: Array<{ message: { content: string } }>;
-  };
-  return data.choices[0]?.message?.content ?? "";
-}
+import { callOpenRouter, MODELS } from "@/lib/openrouter";
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export async function generateTailoredResume(
   input: GenerateResumeInput
 ): Promise<GeneratedResumeData> {
-  if (process.env.GROK_API_KEY) {
+  if (process.env.OPENROUTER_API_KEY) {
     try {
-      const text = await callGrok(buildPrompt(input));
+      const text = await callOpenRouter(buildPrompt(input), {
+        model: MODELS.quality,
+        maxTokens: 4096,
+      });
       return parseResponse(text);
     } catch (err) {
-      console.error("[generateTailoredResume] Grok API error, falling back:", err);
+      console.error("[generateTailoredResume] OpenRouter error, falling back:", err);
     }
   }
   return generateFallback(input);

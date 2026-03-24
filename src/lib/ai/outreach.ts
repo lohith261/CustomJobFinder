@@ -251,35 +251,9 @@ function generateFallback(input: OutreachInput, meta: { title: string }): Outrea
   };
 }
 
-// ─── Grok API call ────────────────────────────────────────────────────────────
+// ─── OpenRouter API call ───────────────────────────────────────────────────────
 
-async function callGrok(prompt: string): Promise<string> {
-  const apiKey = process.env.GROK_API_KEY;
-  if (!apiKey) throw new Error("GROK_API_KEY not set");
-
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      max_tokens: 2048,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Grok API error ${res.status}: ${body}`);
-  }
-
-  const data = (await res.json()) as {
-    choices: Array<{ message: { content: string } }>;
-  };
-  return data.choices[0]?.message?.content ?? "";
-}
+import { callOpenRouter, MODELS } from "@/lib/openrouter";
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
@@ -297,14 +271,14 @@ export async function generateOutreachEmail(input: OutreachInput): Promise<Outre
     // Proceed with empty content — Grok will work from URL alone
   }
 
-  // Step 2: Call Grok to research + generate
-  if (process.env.GROK_API_KEY) {
+  // Step 2: Call OpenRouter to research + generate
+  if (process.env.OPENROUTER_API_KEY) {
     try {
       const prompt = buildPrompt(input.companyUrl, rawText, meta, input.resumeText, input.tone ?? "Professional");
-      const text = await callGrok(prompt);
+      const text = await callOpenRouter(prompt, { model: MODELS.balanced, maxTokens: 2048 });
       return parseResponse(text);
     } catch (err) {
-      console.error("[outreach] Grok API error, falling back:", err);
+      console.error("[outreach] OpenRouter error, falling back:", err);
     }
   }
 

@@ -240,46 +240,22 @@ function analyzeWithMock(input: TailorInput): TailorResult {
   };
 }
 
-// ─── Grok (xAI) API call ──────────────────────────────────────────────────────
+// ─── OpenRouter API call ───────────────────────────────────────────────────────
 
-async function callGrok(prompt: string): Promise<string> {
-  const apiKey = process.env.GROK_API_KEY;
-  if (!apiKey) throw new Error("GROK_API_KEY not set");
-
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      max_tokens: 1024,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Grok API error ${res.status}: ${body}`);
-  }
-
-  const data = (await res.json()) as {
-    choices: Array<{ message: { content: string } }>;
-  };
-  return data.choices[0]?.message?.content ?? "";
-}
+import { callOpenRouter, MODELS } from "@/lib/openrouter";
 
 // ─── Main analysis function ────────────────────────────────────────────────────
 
 export async function analyzeTailor(input: TailorInput): Promise<TailorResult> {
-  // Use Grok API when key is configured
-  if (process.env.GROK_API_KEY) {
+  if (process.env.OPENROUTER_API_KEY) {
     try {
-      const text = await callGrok(buildPrompt(input));
+      const text = await callOpenRouter(buildPrompt(input), {
+        model: MODELS.fast,
+        maxTokens: 1024,
+      });
       return parseClaudeResponse(text);
     } catch (err) {
-      console.error("[analyzeTailor] Grok API error, falling back to mock:", err);
+      console.error("[analyzeTailor] OpenRouter error, falling back to mock:", err);
     }
   }
 

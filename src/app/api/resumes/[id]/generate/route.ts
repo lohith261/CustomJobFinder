@@ -4,6 +4,7 @@ import { generateTailoredResume } from "@/lib/ai/resume-generator";
 import { buildLatex } from "@/lib/latex/template";
 import { fromJsonArray } from "@/lib/json-arrays";
 import { getRequiredUserId } from "@/lib/auth-helpers";
+import { checkAiRateLimit } from "@/lib/rate-limit";
 
 export async function POST(
   req: NextRequest,
@@ -13,6 +14,14 @@ export async function POST(
     const auth = await getRequiredUserId();
     if ("error" in auth) return auth.error;
     const { userId } = auth;
+
+    const rateLimit = await checkAiRateLimit(userId);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "rate_limited", message: `Too many requests. Please wait ${rateLimit.retryAfterSec}s before trying again.` },
+        { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSec) } }
+      );
+    }
 
     const { jobId } = await req.json();
     if (!jobId) return NextResponse.json({ error: "jobId is required" }, { status: 400 });

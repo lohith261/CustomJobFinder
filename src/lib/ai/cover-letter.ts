@@ -6,36 +6,9 @@ export interface CoverLetterInput {
   tone: "professional" | "conversational" | "enthusiastic";
 }
 
-// ─── Grok API call ─────────────────────────────────────────────────────────────
+// ─── OpenRouter API call ───────────────────────────────────────────────────────
 
-async function callGrok(prompt: string): Promise<string> {
-  const apiKey = process.env.GROK_API_KEY;
-  if (!apiKey) throw new Error("GROK_API_KEY not set");
-
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      max_tokens: 2048,
-      messages: [{ role: "user", content: prompt }],
-    }),
-    signal: AbortSignal.timeout(30_000),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Grok API error ${res.status}: ${body}`);
-  }
-
-  const data = (await res.json()) as {
-    choices: Array<{ message: { content: string } }>;
-  };
-  return data.choices[0]?.message?.content ?? "";
-}
+import { callOpenRouter, MODELS } from "@/lib/openrouter";
 
 // ─── Prompt builder ────────────────────────────────────────────────────────────
 
@@ -96,11 +69,14 @@ I am particularly drawn to ${company} because of its reputation for innovation a
 export async function generateCoverLetter(
   input: CoverLetterInput
 ): Promise<string> {
-  if (process.env.GROK_API_KEY) {
+  if (process.env.OPENROUTER_API_KEY) {
     try {
-      return await callGrok(buildPrompt(input));
+      return await callOpenRouter(buildPrompt(input), {
+        model: MODELS.balanced,
+        maxTokens: 2048,
+      });
     } catch (err) {
-      console.error("[generateCoverLetter] Grok API error, using fallback:", err);
+      console.error("[generateCoverLetter] OpenRouter error, using fallback:", err);
     }
   }
 

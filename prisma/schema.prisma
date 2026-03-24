@@ -31,6 +31,7 @@ model User {
   aiCoverLetterCount   Int             @default(0)
   aiOutreachCount      Int             @default(0)
   aiUsageResetAt       DateTime?
+  aiLastCallAt         DateTime?
   profile              UserProfile?
   jobs                 Job[]
   resumes              Resume[]
