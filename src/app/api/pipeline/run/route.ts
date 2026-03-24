@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { runPipeline } from "@/lib/pipeline";
 import { getRequiredUserId } from "@/lib/auth-helpers";
 
+// Allow up to 5 minutes for the pipeline to complete on Vercel
+export const maxDuration = 300;
+
 export async function POST(req: NextRequest) {
   try {
     const auth = await getRequiredUserId();

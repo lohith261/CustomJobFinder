@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { sendWelcomeEmail } from "@/lib/email";
+import { emailSequenceTask } from "@/trigger/email-sequences";
 
 export async function POST(req: Request) {
   const { token } = await req.json().catch(() => ({}));
@@ -23,6 +24,13 @@ export async function POST(req: Request) {
 
   // Send welcome email (best effort)
   sendWelcomeEmail(user.email, user.name).catch(() => {});
+
+  // Schedule Day 2 + Day 6 onboarding email sequence via Trigger.dev
+  if (process.env.TRIGGER_SECRET_KEY) {
+    emailSequenceTask
+      .trigger({ userId: user.id, email: user.email, name: user.name })
+      .catch(() => {});
+  }
 
   return NextResponse.json({ success: true });
 }
