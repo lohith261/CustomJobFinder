@@ -6,7 +6,7 @@ export default defineConfig({
    * It looks like: proj_xxxxxxxxxxxxxxxxxx
    * Set it here or via TRIGGER_PROJECT_ID env var.
    */
-  project: process.env.TRIGGER_PROJECT_ID ?? "proj_placeholder",
+  project: "proj_jycltmmkruccaqfbyhao",
   runtime: "node",
   logLevel: "log",
   retries: {
