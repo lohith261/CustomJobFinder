@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+// ─── Shared constants ────────────────────────────────────────────────────────
+
+const JOB_BOARDS = ["LinkedIn", "Indeed", "Naukri", "RemoteOK", "Remotive", "Adzuna"];
 
 const FEATURES = [
   {
@@ -92,19 +96,32 @@ const PRO_FEATURES = [
   "Priority support",
 ];
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 function CheckIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={2.5}
-      stroke="currentColor"
-    >
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
     </svg>
   );
 }
+
+function useTypewriter(text: string, speed: number, active: boolean) {
+  const [out, setOut] = useState("");
+  useEffect(() => {
+    if (!active) { setOut(""); return; }
+    let i = 0;
+    const id = setInterval(() => {
+      i++;
+      setOut(text.slice(0, i));
+      if (i >= text.length) clearInterval(id);
+    }, speed);
+    return () => clearInterval(id);
+  }, [active, text, speed]);
+  return out;
+}
+
+// ─── Landing Page ─────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -125,25 +142,15 @@ export default function LandingPage() {
           </Link>
 
           <nav className="hidden items-center gap-7 sm:flex">
-            <a href="#features" className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900">
-              Features
-            </a>
-            <a href="#how-it-works" className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900">
-              How it works
-            </a>
-            <a href="#pricing" className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900">
-              Pricing
-            </a>
+            <a href="#demo"         className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900">Demo</a>
+            <a href="#features"     className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900">Features</a>
+            <a href="#how-it-works" className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900">How it works</a>
+            <a href="#pricing"      className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900">Pricing</a>
           </nav>
 
           <div className="hidden items-center gap-3 sm:flex">
-            <Link href="/login" className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900">
-              Sign in
-            </Link>
-            <Link
-              href="/signup"
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-700"
-            >
+            <Link href="/login" className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900">Sign in</Link>
+            <Link href="/signup" className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-700">
               Get started free
             </Link>
           </div>
@@ -154,11 +161,9 @@ export default function LandingPage() {
             aria-label="Toggle menu"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              {mobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              )}
+              {mobileMenuOpen
+                ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                : <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />}
             </svg>
           </button>
         </div>
@@ -166,13 +171,12 @@ export default function LandingPage() {
         {mobileMenuOpen && (
           <div className="border-t border-gray-100 bg-white px-4 py-4 sm:hidden">
             <nav className="flex flex-col gap-4">
-              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-gray-700">Features</a>
+              <a href="#demo"         onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-gray-700">Demo</a>
+              <a href="#features"     onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-gray-700">Features</a>
               <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-gray-700">How it works</a>
-              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-gray-700">Pricing</a>
-              <Link href="/login" className="text-sm font-medium text-gray-700">Sign in</Link>
-              <Link href="/signup" className="rounded-lg bg-gray-900 px-4 py-2 text-center text-sm font-semibold text-white">
-                Get started free
-              </Link>
+              <a href="#pricing"      onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-gray-700">Pricing</a>
+              <Link href="/login"   className="text-sm font-medium text-gray-700">Sign in</Link>
+              <Link href="/signup"  className="rounded-lg bg-gray-900 px-4 py-2 text-center text-sm font-semibold text-white">Get started free</Link>
             </nav>
           </div>
         )}
@@ -180,7 +184,6 @@ export default function LandingPage() {
 
       {/* ── Hero ── */}
       <section className="relative overflow-hidden bg-gray-950 pb-24 pt-20 sm:pb-32 sm:pt-28">
-        {/* Background gradients */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute left-1/2 top-0 h-[600px] w-[900px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-brand-900/30 blur-3xl" />
           <div className="absolute -right-40 top-1/2 h-[400px] w-[400px] rounded-full bg-brand-800/20 blur-3xl" />
@@ -214,23 +217,18 @@ export default function LandingPage() {
               Start free — no card needed
             </Link>
             <a
-              href="#how-it-works"
+              href="#demo"
               className="w-full max-w-xs rounded-xl border border-white/10 bg-white/5 px-7 py-4 text-base font-semibold text-gray-200 transition-all hover:bg-white/10 sm:w-auto"
             >
-              See how it works →
+              Watch it work →
             </a>
           </div>
 
-          {/* Job board logos strip */}
           <div className="mt-16 border-t border-white/10 pt-10">
-            <p className="mb-6 text-xs font-semibold uppercase tracking-widest text-gray-500">
-              Scraped daily from
-            </p>
+            <p className="mb-6 text-xs font-semibold uppercase tracking-widest text-gray-500">Scraped daily from</p>
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm font-semibold text-gray-500">
-              {["LinkedIn", "Indeed", "Naukri", "RemoteOK", "Remotive", "Adzuna"].map((board) => (
-                <span key={board} className="transition-colors hover:text-gray-300">
-                  {board}
-                </span>
+              {JOB_BOARDS.map((board) => (
+                <span key={board} className="transition-colors hover:text-gray-300">{board}</span>
               ))}
             </div>
           </div>
@@ -243,15 +241,16 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
             {STATS.map((stat) => (
               <div key={stat.label} className="text-center">
-                <p className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-                  {stat.value}
-                </p>
+                <p className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">{stat.value}</p>
                 <p className="mt-1.5 text-sm text-gray-500">{stat.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      {/* ── 3D Product Demo ── */}
+      <ProductDemoSection />
 
       {/* ── How it works ── */}
       <section id="how-it-works" className="bg-gray-50 py-24 sm:py-32">
@@ -269,17 +268,14 @@ export default function LandingPage() {
 
           <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { step: "01", title: "Configure", desc: "Set your target titles, salary, location, and skills. Takes 5 minutes." },
-              { step: "02", title: "Discover", desc: "We pull fresh jobs from 6 boards every day and AI-score them against your profile." },
-              { step: "03", title: "Apply", desc: "Get tailored resumes and cover letters for your top matches. Apply in minutes." },
-              { step: "04", title: "Track", desc: "Follow every application from first contact to offer on your Kanban board." },
+              { step: "01", title: "Configure",   desc: "Set your target titles, salary, location, and skills. Takes 5 minutes." },
+              { step: "02", title: "Discover",    desc: "We pull fresh jobs from 6 boards every day and AI-score them against your profile." },
+              { step: "03", title: "Apply",       desc: "Get tailored resumes and cover letters for your top matches. Apply in minutes." },
+              { step: "04", title: "Track",       desc: "Follow every application from first contact to offer on your Kanban board." },
             ].map((item, i) => (
               <div key={item.step} className="relative rounded-2xl bg-white p-7 shadow-sm ring-1 ring-gray-100">
                 {i < 3 && (
-                  <div
-                    aria-hidden="true"
-                    className="absolute right-0 top-1/2 hidden h-0.5 w-4 -translate-y-1/2 translate-x-full bg-gray-200 lg:block"
-                  />
+                  <div aria-hidden="true" className="absolute right-0 top-1/2 hidden h-0.5 w-4 -translate-y-1/2 translate-x-full bg-gray-200 lg:block" />
                 )}
                 <span className="text-xs font-bold text-brand-500 opacity-60">{item.step}</span>
                 <h3 className="mt-3 text-base font-bold text-gray-900">{item.title}</h3>
@@ -323,15 +319,12 @@ export default function LandingPage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-bold uppercase tracking-widest text-brand-400">Testimonials</p>
-            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-              Real people. Real results.
-            </h2>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Real people. Real results.</h2>
           </div>
 
           <div className="mt-14 grid gap-6 sm:grid-cols-3">
             {TESTIMONIALS.map((t) => (
               <div key={t.name} className="rounded-2xl bg-white/5 p-7 ring-1 ring-white/10">
-                {/* Stars */}
                 <div className="mb-4 flex gap-0.5">
                   {[...Array(5)].map((_, i) => (
                     <svg key={i} className="h-4 w-4 text-brand-400" viewBox="0 0 20 20" fill="currentColor">
@@ -355,19 +348,12 @@ export default function LandingPage() {
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-bold uppercase tracking-widest text-brand-600">Pricing</p>
-            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-              Simple, honest pricing
-            </h2>
-            <p className="mt-4 text-lg text-gray-500">
-              Start free. Upgrade when you&apos;re ready.
-            </p>
-            <p className="mt-1.5 text-sm text-gray-400">
-              Currently accepting UPI payments directly · Razorpay coming soon.
-            </p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Simple, honest pricing</h2>
+            <p className="mt-4 text-lg text-gray-500">Start free. Upgrade when you&apos;re ready.</p>
+            <p className="mt-1.5 text-sm text-gray-400">Currently accepting UPI payments directly · Razorpay coming soon.</p>
           </div>
 
           <div className="mt-14 grid gap-6 md:grid-cols-2">
-            {/* Free */}
             <div className="flex flex-col rounded-2xl border border-gray-200 bg-white p-8">
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-gray-900">Free</h3>
@@ -388,21 +374,15 @@ export default function LandingPage() {
                 ))}
               </ul>
               <div className="mt-8">
-                <Link
-                  href="/signup"
-                  className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-center text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100"
-                >
+                <Link href="/signup" className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-center text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100">
                   Get started free
                 </Link>
               </div>
             </div>
 
-            {/* Pro */}
             <div className="relative flex flex-col rounded-2xl bg-gray-950 p-8 shadow-xl">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                <span className="rounded-full bg-brand-500 px-4 py-1 text-xs font-bold text-white">
-                  Most Popular
-                </span>
+                <span className="rounded-full bg-brand-500 px-4 py-1 text-xs font-bold text-white">Most Popular</span>
               </div>
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-white">Pro</h3>
@@ -423,10 +403,7 @@ export default function LandingPage() {
                 ))}
               </ul>
               <div className="mt-8">
-                <Link
-                  href="/signup"
-                  className="block w-full rounded-xl bg-brand-500 px-4 py-3 text-center text-sm font-bold text-white transition-colors hover:bg-brand-400"
-                >
+                <Link href="/signup" className="block w-full rounded-xl bg-brand-500 px-4 py-3 text-center text-sm font-bold text-white transition-colors hover:bg-brand-400">
                   Start free → upgrade anytime
                 </Link>
               </div>
@@ -441,7 +418,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-3 gap-6 mb-14">
             {[
               { value: "<100", label: "Early access spots" },
-              { value: "6", label: "Job boards daily" },
+              { value: "6",    label: "Job boards daily" },
               { value: "Free", label: "To get started" },
             ].map((s) => (
               <div key={s.label} className="rounded-xl bg-white/5 px-4 py-6 ring-1 ring-white/10">
@@ -461,10 +438,7 @@ export default function LandingPage() {
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              href="/signup"
-              className="w-full max-w-xs rounded-xl bg-brand-500 px-8 py-4 text-base font-bold text-white shadow-lg shadow-brand-900/50 transition-all hover:bg-brand-400 sm:w-auto"
-            >
+            <Link href="/signup" className="w-full max-w-xs rounded-xl bg-brand-500 px-8 py-4 text-base font-bold text-white shadow-lg shadow-brand-900/50 transition-all hover:bg-brand-400 sm:w-auto">
               Claim your spot →
             </Link>
           </div>
@@ -490,14 +464,13 @@ export default function LandingPage() {
 
             <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 sm:justify-end">
               {[
-                { href: "#features", label: "Features" },
-                { href: "#pricing", label: "Pricing" },
+                { href: "#features",     label: "Features" },
+                { href: "#how-it-works", label: "How it works" },
+                { href: "#pricing",      label: "Pricing" },
               ].map((link) => (
-                <a key={link.href} href={link.href} className="text-sm text-gray-500 transition-colors hover:text-gray-300">
-                  {link.label}
-                </a>
+                <a key={link.href} href={link.href} className="text-sm text-gray-500 transition-colors hover:text-gray-300">{link.label}</a>
               ))}
-              <Link href="/login" className="text-sm text-gray-500 transition-colors hover:text-gray-300">Sign in</Link>
+              <Link href="/login"  className="text-sm text-gray-500 transition-colors hover:text-gray-300">Sign in</Link>
               <Link href="/signup" className="text-sm text-gray-500 transition-colors hover:text-gray-300">Sign up</Link>
             </nav>
           </div>
@@ -508,7 +481,417 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
 
+// ─── 3D Product Demo ──────────────────────────────────────────────────────────
+
+const DEMO_STEPS = [
+  { label: "Scraping jobs" },
+  { label: "AI scoring" },
+  { label: "Tailoring resume" },
+  { label: "Cover letter" },
+  { label: "Kanban tracking" },
+];
+
+const COVER_TEXT =
+`Dear Hiring Manager,
+
+I'm applying for the Senior PM role at Flipkart. With 5+ years scaling B2C products at Swiggy — including 0→1 launches for Instamart — I bring cross-functional leadership and a data-driven approach.
+
+My background aligns directly with your requirements.
+
+Looking forward to connecting.
+
+— Priya S.`;
+
+function ProductDemoSection() {
+  const [step, setStep]               = useState(0);
+  const [cycleKey, setCycleKey]       = useState(0);
+  const [kanbanMoved, setKanbanMoved] = useState(false);
+  const [resumeRevised, setResumeRevised] = useState(false);
+  const coverText = useTypewriter(COVER_TEXT, 11, step === 3);
+
+  // Auto-advance every 4 s
+  useEffect(() => {
+    const id = setInterval(() => setStep((s) => (s + 1) % 5), 4000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Reset per-step sub-state when step changes
+  useEffect(() => {
+    setCycleKey((k) => k + 1);
+    setKanbanMoved(false);
+    setResumeRevised(false);
+    if (step === 4) {
+      const id = setTimeout(() => setKanbanMoved(true), 1300);
+      return () => clearTimeout(id);
+    }
+    if (step === 2) {
+      const id = setTimeout(() => setResumeRevised(true), 1000);
+      return () => clearTimeout(id);
+    }
+  }, [step]);
+
+  return (
+    <section id="demo" className="relative overflow-hidden bg-gray-950 py-24 sm:py-32">
+      {/* ambient glow */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-1/2 h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-900/20 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto max-w-5xl px-4 sm:px-6">
+        {/* Header */}
+        <div className="mb-10 text-center">
+          <p className="text-xs font-bold uppercase tracking-widest text-brand-400">Live demo</p>
+          <h2 className="mt-3 text-3xl font-extrabold text-white sm:text-4xl md:text-5xl">
+            60 seconds.{" "}
+            <span className="text-brand-400">Your entire job search, automated.</span>
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-gray-400">
+            Watch the pipeline run end-to-end — from scraping 6 boards to writing your cover letter to tracking the application.
+          </p>
+        </div>
+
+        {/* Step pills */}
+        <div className="mb-10 flex flex-wrap justify-center gap-2">
+          {DEMO_STEPS.map((s, i) => (
+            <button
+              key={i}
+              onClick={() => { setStep(i); }}
+              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+                step === i
+                  ? "bg-brand-500 text-white shadow-lg shadow-brand-900/50"
+                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-200"
+              }`}
+            >
+              {i + 1}. {s.label}
+            </button>
+          ))}
+        </div>
+
+        {/* 3D browser window */}
+        <div className="mx-auto max-w-2xl" style={{ perspective: "1400px" }}>
+          <div
+            className="overflow-hidden rounded-2xl ring-1 ring-white/10 transition-transform duration-700 ease-out"
+            style={{
+              transform: "rotateX(7deg) rotateY(-3deg)",
+              boxShadow:
+                "0 60px 120px -20px rgba(31,158,151,0.3), 0 0 0 1px rgba(255,255,255,0.04)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.transform = "rotateX(1deg) rotateY(-0.5deg)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.transform = "rotateX(7deg) rotateY(-3deg)";
+            }}
+          >
+            {/* Browser chrome */}
+            <div className="flex items-center gap-3 border-b border-white/5 bg-[#1c1c1e] px-4 py-2.5">
+              <div className="flex gap-1.5">
+                <div className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+                <div className="h-3 w-3 rounded-full bg-[#febc2e]" />
+                <div className="h-3 w-3 rounded-full bg-[#28c840]" />
+              </div>
+              <div className="mx-2 flex h-6 flex-1 items-center gap-2 rounded-md bg-white/5 px-3">
+                <svg className="h-3 w-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                </svg>
+                <span className="font-mono text-xs text-gray-400">jobtailor.in/pipeline</span>
+              </div>
+            </div>
+
+            {/* Screen — fixed height */}
+            <div className="relative h-80 overflow-hidden bg-[#0f1117]">
+              {step === 0 && <ScrapingScreen  key={`s0-${cycleKey}`} />}
+              {step === 1 && <ScoringScreen   key={`s1-${cycleKey}`} />}
+              {step === 2 && <ResumeScreen    key={`s2-${cycleKey}`} revised={resumeRevised} />}
+              {step === 3 && <CoverLetterScreen key={`s3-${cycleKey}`} text={coverText} />}
+              {step === 4 && <KanbanScreen    key={`s4-${cycleKey}`} moved={kanbanMoved} />}
+            </div>
+
+            {/* Status bar */}
+            <div className="flex items-center justify-between border-t border-white/5 bg-[#1c1c1e] px-4 py-2">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-500" />
+                </span>
+                <span className="font-mono text-xs text-gray-500">Pipeline running</span>
+              </div>
+              <div className="flex gap-1">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className={`h-1 rounded-full transition-all duration-300 ${
+                      i === step ? "w-5 bg-brand-400" : i < step ? "w-1 bg-brand-700" : "w-1 bg-white/15"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Reflection / shadow under window */}
+          <div
+            className="mx-6 h-6 rounded-b-2xl opacity-30 blur-xl"
+            style={{ background: "radial-gradient(ellipse, rgba(31,158,151,0.6) 0%, transparent 70%)" }}
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Step screens ─────────────────────────────────────────────────────────────
+
+function ScrapingScreen() {
+  return (
+    <div className="absolute inset-0 flex flex-col p-5" style={{ animation: "jt-fade-in 0.35s ease forwards" }}>
+      <div className="mb-3 flex items-center gap-2">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-500" />
+        </span>
+        <span className="font-mono text-xs text-brand-400">Scanning job boards…</span>
+      </div>
+
+      {/* Board chips */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        {JOB_BOARDS.map((b, i) => (
+          <span
+            key={b}
+            className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-medium text-gray-300"
+            style={{ animation: `jt-fade-up 0.3s ease both ${i * 70}ms`, opacity: 0 }}
+          >
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-400" />
+            {b}
+          </span>
+        ))}
+      </div>
+
+      {/* Job cards streaming in */}
+      <div className="flex-1 space-y-2">
+        {[
+          { title: "Senior Product Manager", company: "Flipkart",  loc: "Bangalore · Remote",  delay: "180ms" },
+          { title: "Product Lead — Growth",  company: "Swiggy",    loc: "Hyderabad · Hybrid",  delay: "480ms" },
+          { title: "PM — Platform",          company: "Meesho",    loc: "Bangalore · Onsite",  delay: "780ms" },
+        ].map((j) => (
+          <div
+            key={j.title}
+            className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2"
+            style={{ animation: `jt-slide-in 0.35s ease both ${j.delay}`, opacity: 0 }}
+          >
+            <div>
+              <p className="text-sm font-semibold leading-tight text-white">{j.title}</p>
+              <p className="text-xs text-gray-500">{j.company} · {j.loc}</p>
+            </div>
+            <span className="rounded-full bg-brand-950/60 px-2 py-0.5 text-[10px] font-bold text-brand-400">NEW</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ScoringScreen() {
+  const JOBS = [
+    { title: "Senior Product Manager", company: "Flipkart", score: 92, label: "Strong Match",  scoreColor: "text-emerald-400", barColor: "bg-emerald-500", labelColor: "text-emerald-500" },
+    { title: "Product Lead — Growth",  company: "Swiggy",   score: 78, label: "Good Match",    scoreColor: "text-brand-400",   barColor: "bg-brand-500",   labelColor: "text-brand-500"   },
+    { title: "PM — Platform",          company: "Meesho",   score: 61, label: "Fair Match",    scoreColor: "text-amber-400",   barColor: "bg-amber-500",   labelColor: "text-amber-500"   },
+  ];
+
+  return (
+    <div className="absolute inset-0 flex flex-col p-5" style={{ animation: "jt-fade-in 0.35s ease forwards" }}>
+      <p className="mb-4 font-mono text-xs text-brand-400">AI scoring your matches…</p>
+
+      <div className="flex-1 space-y-3">
+        {JOBS.map((j, i) => (
+          <div
+            key={j.title}
+            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2.5"
+            style={{ animation: `jt-fade-up 0.3s ease both ${i * 130}ms`, opacity: 0 }}
+          >
+            <div className="mb-1.5 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold leading-tight text-white">{j.title}</p>
+                <p className="text-xs text-gray-500">{j.company}</p>
+              </div>
+              <div className="text-right">
+                <span className={`text-base font-extrabold ${j.scoreColor}`}>{j.score}%</span>
+                <p className={`text-[10px] font-semibold ${j.labelColor}`}>{j.label}</p>
+              </div>
+            </div>
+            {/* Animated score bar */}
+            <div className="h-1 overflow-hidden rounded-full bg-white/10">
+              <div
+                className={`h-full rounded-full ${j.barColor}`}
+                style={{
+                  width: `${j.score}%`,
+                  transformOrigin: "left",
+                  animation: `jt-score-bar 0.9s cubic-bezier(0.22,1,0.36,1) both ${i * 130 + 250}ms`,
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ResumeScreen({ revised }: { revised: boolean }) {
+  return (
+    <div className="absolute inset-0 flex flex-col p-5" style={{ animation: "jt-fade-in 0.35s ease forwards" }}>
+      <div className="mb-3 flex items-center justify-between">
+        <span className="font-mono text-xs text-brand-400">Tailoring resume for Flipkart…</span>
+        {revised && (
+          <span
+            className="rounded-full bg-emerald-950/60 px-2 py-0.5 text-[10px] font-bold text-emerald-400"
+            style={{ animation: "jt-fade-up 0.3s ease forwards" }}
+          >
+            ✓ 3 keywords added
+          </span>
+        )}
+      </div>
+
+      <div className="flex-1 overflow-hidden rounded-lg border border-white/10 bg-white/5 p-4 font-mono">
+        {/* Header */}
+        <div className="mb-3 border-b border-white/5 pb-2">
+          <p className="text-sm font-bold text-white">Priya Sharma</p>
+          <p className="text-xs text-gray-400">Product Manager · priya@email.com · Bangalore</p>
+        </div>
+
+        <div className="space-y-2 text-[11px]">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-gray-600">Experience</p>
+
+          <div>
+            <p className="font-semibold text-gray-300">Senior PM · Swiggy · 2021–Present</p>
+            <div className="mt-1 space-y-1 pl-2">
+              {/* Line that gets revised */}
+              <p className={`transition-colors duration-500 ${revised ? "text-emerald-400" : "text-amber-300/80"}`}>
+                · {revised
+                  ? "Led 0→1 product development for Instamart (5+ yrs)"
+                  : "Led product development (2 yrs)"}
+              </p>
+              <p className={`transition-colors duration-500 ${revised ? "text-emerald-400" : "text-gray-400"}`}>
+                · {revised
+                  ? "Drove 3× DAU growth via A/B testing & stakeholder alignment"
+                  : "Improved user engagement metrics across teams"}
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-1">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-gray-600">Skills</p>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {(["Agile", "SQL", "Roadmapping",
+                ...(revised ? ["Stakeholder Mgmt", "Product Analytics"] : []),
+              ] as string[]).map((s) => (
+                <span
+                  key={s}
+                  className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                    s === "Stakeholder Mgmt" || s === "Product Analytics"
+                      ? "border border-emerald-800/50 bg-emerald-950/60 text-emerald-400"
+                      : "bg-white/5 text-gray-400"
+                  }`}
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CoverLetterScreen({ text }: { text: string }) {
+  return (
+    <div className="absolute inset-0 flex flex-col p-5" style={{ animation: "jt-fade-in 0.35s ease forwards" }}>
+      <div className="mb-3 flex items-center justify-between">
+        <span className="font-mono text-xs text-brand-400">Generating cover letter…</span>
+        <span className="text-xs text-gray-600">Flipkart · Senior PM · Professional tone</span>
+      </div>
+
+      <div className="flex-1 overflow-hidden rounded-lg border border-white/10 bg-white/5 p-4">
+        <p className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-gray-300">
+          {text}
+          <span
+            className="ml-0.5 inline-block h-3.5 w-0.5 translate-y-0.5 bg-brand-400"
+            style={{ animation: "jt-cursor 0.9s step-end infinite" }}
+          />
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function KanbanScreen({ moved }: { moved: boolean }) {
+  return (
+    <div className="absolute inset-0 flex flex-col p-5" style={{ animation: "jt-fade-in 0.35s ease forwards" }}>
+      <div className="mb-3 flex items-center gap-2">
+        <span className="font-mono text-xs text-brand-400">Application board</span>
+      </div>
+
+      <div className="flex flex-1 gap-3">
+        {/* Saved */}
+        <div className="flex flex-1 flex-col gap-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600">Saved</p>
+          <div className="rounded-lg border border-white/10 bg-white/5 p-2.5">
+            <p className="text-xs font-semibold text-gray-300">PM · Meesho</p>
+            <p className="mt-0.5 text-[10px] text-gray-500">61% match</p>
+          </div>
+          <div className="rounded-lg border border-white/10 bg-white/5 p-2.5">
+            <p className="text-xs font-semibold text-gray-300">Product Lead · Zomato</p>
+            <p className="mt-0.5 text-[10px] text-gray-500">74% match</p>
+          </div>
+        </div>
+
+        {/* Applied */}
+        <div className="flex flex-1 flex-col gap-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600">Applied</p>
+          {!moved ? (
+            <div
+              className="rounded-lg border border-brand-800/50 bg-brand-950/60 p-2.5"
+              style={{ animation: "jt-fade-up 0.3s ease forwards" }}
+            >
+              <p className="text-xs font-semibold text-brand-200">Sr PM · Flipkart</p>
+              <p className="mt-0.5 text-[10px] text-brand-400">92% match</p>
+            </div>
+          ) : (
+            <div className="h-[52px] rounded-lg border border-dashed border-white/10" />
+          )}
+        </div>
+
+        {/* Interview */}
+        <div className="flex flex-1 flex-col gap-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600">Interview</p>
+          {moved && (
+            <div
+              className="rounded-lg border border-emerald-800/50 bg-emerald-950/60 p-2.5"
+              style={{ animation: "jt-fade-up 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards" }}
+            >
+              <p className="text-xs font-semibold text-emerald-200">Sr PM · Flipkart</p>
+              <p className="mt-0.5 text-[10px] text-emerald-400">Interview booked ✓</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="mt-3 flex items-center gap-2">
+        <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
+          <div
+            className={`h-full rounded-full bg-gradient-to-r from-brand-500 to-emerald-500 transition-all duration-1000 ease-out ${
+              moved ? "w-3/4" : "w-1/4"
+            }`}
+          />
+        </div>
+        <span className="font-mono text-[10px] text-gray-500">{moved ? "Stage 3/4" : "Stage 1/4"}</span>
+      </div>
     </div>
   );
 }

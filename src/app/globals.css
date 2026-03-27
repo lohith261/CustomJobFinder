@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes jt-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes jt-slide-in {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes jt-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes jt-score-bar {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+@keyframes jt-cursor {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
 @layer base {
   body {
     @apply bg-gray-50 text-gray-900 antialiased font-sans
