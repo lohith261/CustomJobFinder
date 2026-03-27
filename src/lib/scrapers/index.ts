@@ -9,6 +9,7 @@ import { AdzunaScraper } from "./adzuna";
 import { IntershalaScraper } from "./internshala";
 import { NaukriScraper } from "./naukri";
 import { IndeedScraper } from "./indeed";
+import { LinkedInScraper } from "./linkedin";
 import { deduplicateJobs } from "@/lib/dedup";
 
 /** All available scrapers. Add new scrapers here. */
@@ -23,6 +24,7 @@ function createScrapers(): Scraper[] {
     new IntershalaScraper(), // no API key needed — scrapes internshala.com/jobs
     new NaukriScraper(), // auto-disables when SCRAPE_DO_TOKEN is not set
     new IndeedScraper(), // auto-disables when SCRAPE_DO_TOKEN is not set
+    new LinkedInScraper(), // auto-disables when SCRAPE_DO_TOKEN is not set
   ];
   return scrapers;
 }

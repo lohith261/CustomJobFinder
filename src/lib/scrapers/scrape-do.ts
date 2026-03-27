@@ -38,9 +38,9 @@ export async function scrapeDOFetch(
   // Pass timeout to scrape.do so it waits on their end too
   params.set("timeout", String(timeoutMs));
 
-  // customHeaders=true tells scrape.do to forward our headers to the target
+  // forwardHeaders=true tells scrape.do to forward our custom headers to the target
   const hasExtraHeaders = options.extraHeaders && Object.keys(options.extraHeaders).length > 0;
-  if (hasExtraHeaders) params.set("customHeaders", "true");
+  if (hasExtraHeaders) params.set("forwardHeaders", "true");
 
   const proxyUrl = `${SCRAPE_DO_BASE}?${params.toString()}`;
 

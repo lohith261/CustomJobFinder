@@ -199,7 +199,7 @@ async function fetchNaukriJobs(keyword: string): Promise<NaukriJob[]> {
     geoCode: "in",
     extraHeaders: {
       appid: "109",
-      systemid: "109",
+      systemid: "resman",
       "Content-Type": "application/json",
     },
   });
