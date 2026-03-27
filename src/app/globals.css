@@ -22,12 +22,68 @@
   0%, 100% { opacity: 1; }
   50%       { opacity: 0; }
 }
+@keyframes jt-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes jt-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes jt-spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes jt-shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
 
 @layer base {
   body {
     @apply bg-gray-50 text-gray-900 antialiased font-sans
            dark:bg-gray-950 dark:text-gray-100;
   }
+}
+
+/* ── Landing-page utilities ───────────────────────────────────────────────── */
+.jt-marquee          { animation: jt-marquee 28s linear infinite; }
+.jt-float            { animation: jt-float 4s ease-in-out infinite; }
+.jt-spin-slow        { animation: jt-spin-slow 12s linear infinite; }
+
+/* Scroll-reveal — add .jt-visible via IntersectionObserver */
+.jt-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s cubic-bezier(.22,1,.36,1), transform 0.65s cubic-bezier(.22,1,.36,1);
+}
+.jt-reveal.jt-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.jt-reveal-d1 { transition-delay: 0.08s; }
+.jt-reveal-d2 { transition-delay: 0.16s; }
+.jt-reveal-d3 { transition-delay: 0.24s; }
+.jt-reveal-d4 { transition-delay: 0.32s; }
+.jt-reveal-d5 { transition-delay: 0.40s; }
+.jt-reveal-d6 { transition-delay: 0.48s; }
+
+/* Subtle grid background */
+.jt-grid-bg {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Shimmer gradient text */
+.jt-shimmer-text {
+  background: linear-gradient(90deg, #3bbbb1 0%, #72d5ca 30%, #ffffff 50%, #72d5ca 70%, #3bbbb1 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: jt-shimmer 4s linear infinite;
 }
 
 @layer components {
