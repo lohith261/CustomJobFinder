@@ -21,13 +21,20 @@ export async function GET(
 
     if (!tailored) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+    let resumeData: unknown = null;
+    try {
+      resumeData = JSON.parse(tailored.resumeJson);
+    } catch {
+      console.warn(`GET /api/tailored-resumes/[id]: resumeJson is invalid JSON for id=${tailored.id}`);
+    }
+
     return NextResponse.json({
       id: tailored.id,
       resumeId: tailored.resumeId,
       jobId: tailored.jobId,
       projectedScore: tailored.projectedScore,
       latexSource: tailored.latexSource,
-      resumeData: JSON.parse(tailored.resumeJson),
+      resumeData,
       createdAt: tailored.createdAt.toISOString(),
       updatedAt: tailored.updatedAt.toISOString(),
       job: tailored.job,

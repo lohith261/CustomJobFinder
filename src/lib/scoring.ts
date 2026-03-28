@@ -559,7 +559,7 @@ export function calculatePriorityInsights(
   effortScore = Math.max(0, Math.min(100, effortScore));
 
   const freshnessBonus = job.postedAt
-    ? Math.max(0, 15 - Math.floor((Date.now() - job.postedAt.getTime()) / 86400000))
+    ? Math.min(15, Math.max(0, 15 - Math.floor((Date.now() - job.postedAt.getTime()) / 86400000)))
     : 5;
   const priorityScore = Math.max(
     0,

@@ -33,17 +33,18 @@ export async function checkQuota(userId: string, type: QuotaType): Promise<
   const needsReset = !resetAt || now > resetAt;
 
   if (needsReset) {
+    // Single atomic update: reset all counters AND set the current type to 1.
+    // Avoids the race condition where two concurrent requests both see needsReset=true
+    // then both call incrementQuota, resulting in a count of 2 instead of 1.
     await prisma.user.update({
       where: { id: userId },
       data: {
-        aiAnalysisCount: 0,
-        aiCoverLetterCount: 0,
-        aiOutreachCount: 0,
+        aiAnalysisCount:    type === "analysis"    ? 1 : 0,
+        aiCoverLetterCount: type === "coverLetter" ? 1 : 0,
+        aiOutreachCount:    type === "outreach"    ? 1 : 0,
         aiUsageResetAt: new Date(now.getFullYear(), now.getMonth() + 1, 1),
       },
     });
-    // After reset, increment and allow
-    await incrementQuota(userId, type);
     return { allowed: true, remaining: FREE_LIMITS[type] - 1 };
   }
 

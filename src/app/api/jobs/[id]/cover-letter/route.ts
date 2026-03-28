@@ -53,6 +53,13 @@ export async function PATCH(
       return NextResponse.json({ error: "content is required" }, { status: 400 });
     }
 
+    const VALID_TONES = ["professional", "conversational", "enthusiastic"] as const;
+    type ValidTone = typeof VALID_TONES[number];
+    const validatedTone: ValidTone | undefined =
+      tone && (VALID_TONES as readonly string[]).includes(tone)
+        ? (tone as ValidTone)
+        : undefined;
+
     const result = await prisma.coverLetter.updateMany({
       where: {
         jobId: params.id,
@@ -61,7 +68,7 @@ export async function PATCH(
       },
       data: {
         content,
-        ...(tone ? { tone } : {}),
+        ...(validatedTone ? { tone: validatedTone } : {}),
       },
     });
 

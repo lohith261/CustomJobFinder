@@ -35,7 +35,9 @@ export async function POST(req: Request, { params }: { params: { userId: string 
     select: { email: true, subscriptionPlan: true, subscriptionEndsAt: true },
   });
 
-  sendProActivationEmail(updated.email, updated.subscriptionPlan ?? "monthly", updated.subscriptionEndsAt!).catch(() => {});
+  await sendProActivationEmail(updated.email, updated.subscriptionPlan ?? "monthly", updated.subscriptionEndsAt!).catch((err: unknown) => {
+    console.error("[admin/activate] sendProActivationEmail failed:", err);
+  });
 
   return Response.json({ success: true, user: updated });
 }
