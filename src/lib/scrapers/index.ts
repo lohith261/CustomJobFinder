@@ -11,6 +11,7 @@ import { NaukriScraper } from "./naukri";
 import { IndeedScraper } from "./indeed";
 import { LinkedInScraper } from "./linkedin";
 import { ApifyLinkedInScraper, ApifyIndeedScraper, ApifyWellfoundScraper } from "./apify";
+import { FirecrawlJobScraper } from "./firecrawl";
 import { deduplicateJobs } from "@/lib/dedup";
 
 /** Race a scraper call against a timeout — prevents a slow source from stalling the whole run. */
@@ -72,10 +73,16 @@ function createScrapers(): Scraper[] {
     new AdzunaScraper(),     // auto-disables when ADZUNA_APP_ID / ADZUNA_API_KEY not set
     new IntershalaScraper(), // no API key needed
     new NaukriScraper(),     // auto-disables when SCRAPE_DO_TOKEN not set
-    // LinkedIn: Apify primary → scrape.do fallback
-    new FallbackScraper(new ApifyLinkedInScraper(), new LinkedInScraper()),
-    // Indeed: Apify primary → scrape.do fallback
-    new FallbackScraper(new ApifyIndeedScraper(), new IndeedScraper()),
+    // LinkedIn: Apify → scrape.do → Firecrawl (three-tier safety net)
+    new FallbackScraper(
+      new FallbackScraper(new ApifyLinkedInScraper(), new LinkedInScraper()),
+      new FirecrawlJobScraper("site:linkedin.com/jobs"),
+    ),
+    // Indeed: Apify → scrape.do → Firecrawl (three-tier safety net)
+    new FallbackScraper(
+      new FallbackScraper(new ApifyIndeedScraper(), new IndeedScraper()),
+      new FirecrawlJobScraper("site:indeed.com"),
+    ),
     // Wellfound (AngelList) — auto-disables when APIFY_API_TOKEN not set
     new ApifyWellfoundScraper(),
   ];
