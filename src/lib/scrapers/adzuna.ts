@@ -7,8 +7,8 @@ import { passesGeoFilter } from "./geo-filter";
 const ADZUNA_BASE_URL = "https://api.adzuna.com/v1/api/jobs";
 const REQUEST_TIMEOUT_MS = 15000;
 
-// Country codes to search. Adzuna covers: us, gb, au, ca, in, de, fr, nl, sg, nz, at, be, br, mx, pl, ru, za
-const SEARCH_COUNTRIES = ["us", "gb", "in", "au", "ca"];
+// Only search India — global remote jobs are covered by RemoteOK, Remotive, Jobicy, and Arbeitnow
+const SEARCH_COUNTRIES = ["in"];
 
 interface AdzunaJob {
   id: string;
