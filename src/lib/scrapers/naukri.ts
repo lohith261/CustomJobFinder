@@ -5,6 +5,7 @@ import { RawJob, SearchConfigData } from "@/types";
 import { Scraper, ScraperResult } from "./types";
 import { passesGeoFilter } from "./geo-filter";
 import { scrapeDOFetch, isScrapeDOEnabled } from "./scrape-do";
+import { firecrawlFetch, isFirecrawlEnabled } from "./firecrawl";
 
 const NAUKRI_API_BASE = "https://www.naukri.com/jobapi/v3/search";
 const REQUEST_TIMEOUT_MS = 30000; // scrape.do adds overhead
@@ -194,15 +195,24 @@ async function fetchNaukriJobs(keyword: string): Promise<NaukriJob[]> {
   const apiUrl = `${NAUKRI_API_BASE}?${params.toString()}`;
   console.log(`[NaukriScraper] Fetching: ${apiUrl}`);
 
-  const rawText = await scrapeDOFetch(apiUrl, {
-    timeoutMs: REQUEST_TIMEOUT_MS,
-    geoCode: "in",
-    extraHeaders: {
-      appid: "109",
-      systemid: "resman",
-      "Content-Type": "application/json",
-    },
-  });
+  // Naukri's internal JSON API requires custom headers for auth
+  const naukriHeaders = { appid: "109", systemid: "resman", "Content-Type": "application/json" };
+
+  let rawText: string;
+  if (isFirecrawlEnabled()) {
+    rawText = await firecrawlFetch(apiUrl, {
+      timeoutMs: REQUEST_TIMEOUT_MS,
+      headers: naukriHeaders,
+    });
+    console.log(`[NaukriScraper] Firecrawl: ${rawText.length} chars for "${keyword}"`);
+  } else {
+    rawText = await scrapeDOFetch(apiUrl, {
+      timeoutMs: REQUEST_TIMEOUT_MS,
+      geoCode: "in",
+      extraHeaders: naukriHeaders,
+    });
+    console.log(`[NaukriScraper] scrape.do: ${rawText.length} chars for "${keyword}"`);
+  }
 
   let data: NaukriResponse;
   try {
@@ -221,8 +231,7 @@ export class NaukriScraper implements Scraper {
   enabled: boolean;
 
   constructor() {
-    // Auto-disable if scrape.do proxy is not configured (Naukri blocks direct server requests)
-    this.enabled = isScrapeDOEnabled();
+    this.enabled = isFirecrawlEnabled() || isScrapeDOEnabled();
   }
 
   async scrape(config: SearchConfigData): Promise<ScraperResult> {

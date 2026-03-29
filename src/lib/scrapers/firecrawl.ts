@@ -31,7 +31,59 @@ interface FirecrawlSearchResponse {
   warning?: string | null;
 }
 
-// ─── API client ───────────────────────────────────────────────────────────────
+// ─── Shared utilities ─────────────────────────────────────────────────────────
+
+export function isFirecrawlEnabled(): boolean {
+  return !!process.env.FIRECRAWL_API_KEY;
+}
+
+/**
+ * Fetch a URL using Firecrawl's Scrape API with full JS rendering and auto proxy.
+ * Returns the raw HTML content of the page — works as a drop-in replacement for
+ * scrape.do when you need to scrape job board pages or JSON API endpoints.
+ */
+export async function firecrawlFetch(
+  url: string,
+  options: {
+    waitFor?: number;
+    timeoutMs?: number;
+    headers?: Record<string, string>;
+  } = {}
+): Promise<string> {
+  const apiKey = process.env.FIRECRAWL_API_KEY;
+  if (!apiKey) throw new Error("FIRECRAWL_API_KEY not set");
+
+  const body: Record<string, unknown> = {
+    url,
+    formats: ["rawHtml"],
+    proxy: "auto",
+    onlyMainContent: false,
+  };
+  if (options.waitFor) body.waitFor = options.waitFor;
+  if (options.headers) body.headers = options.headers;
+
+  const res = await fetch(`${FIRECRAWL_BASE}/v1/scrape`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(options.timeoutMs ?? 60_000),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Firecrawl Scrape API error ${res.status}: ${text.slice(0, 200)}`);
+  }
+
+  const data = await res.json() as { success: boolean; data?: { rawHtml?: string } };
+  const html = data.data?.rawHtml;
+  if (!html) throw new Error("Firecrawl Scrape API returned no HTML content");
+  return html;
+}
+
+// ─── Search API client (used by FirecrawlJobScraper below) ────────────────────
 
 async function searchFirecrawl(
   query: string,

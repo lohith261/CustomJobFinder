@@ -6,6 +6,7 @@ import { RawJob, SearchConfigData } from "@/types";
 import { Scraper, ScraperResult } from "./types";
 import { passesGeoFilter } from "./geo-filter";
 import { scrapeDOFetch, isScrapeDOEnabled } from "./scrape-do";
+import { firecrawlFetch, isFirecrawlEnabled } from "./firecrawl";
 
 const INDEED_BASE_URL = "https://in.indeed.com/jobs";
 const REQUEST_TIMEOUT_MS = 30000;
@@ -592,11 +593,14 @@ async function fetchIndeedJobs(title: string, location: string): Promise<RawJob[
   const url = `${INDEED_BASE_URL}?${params.toString()}`;
   console.log(`[IndeedScraper] Fetching: ${url}`);
 
-  const html = await scrapeDOFetch(url, {
-    geoCode: "in",
-    timeoutMs: REQUEST_TIMEOUT_MS,
-  });
-  console.log(`[IndeedScraper] Received ${html.length} bytes for title="${title}", location="${location}"`);
+  let html: string;
+  if (isFirecrawlEnabled()) {
+    html = await firecrawlFetch(url, { waitFor: 2000, timeoutMs: 45_000 });
+    console.log(`[IndeedScraper] Firecrawl: ${html.length} bytes for title="${title}", location="${location}"`);
+  } else {
+    html = await scrapeDOFetch(url, { geoCode: "in", timeoutMs: REQUEST_TIMEOUT_MS });
+    console.log(`[IndeedScraper] scrape.do: ${html.length} bytes for title="${title}", location="${location}"`);
+  }
 
   // Strategy 1: embedded JSON blob
   const jsonResults = extractJsonBlob(html);
@@ -641,8 +645,7 @@ export class IndeedScraper implements Scraper {
   enabled: boolean;
 
   constructor() {
-    // Auto-disable if scrape.do is not configured — Indeed aggressively blocks direct requests
-    this.enabled = isScrapeDOEnabled();
+    this.enabled = isFirecrawlEnabled() || isScrapeDOEnabled();
   }
 
   async scrape(config: SearchConfigData): Promise<ScraperResult> {

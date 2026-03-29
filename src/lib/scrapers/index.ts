@@ -11,7 +11,6 @@ import { NaukriScraper } from "./naukri";
 import { IndeedScraper } from "./indeed";
 import { LinkedInScraper } from "./linkedin";
 import { ApifyLinkedInScraper, ApifyIndeedScraper, ApifyWellfoundScraper } from "./apify";
-import { FirecrawlJobScraper } from "./firecrawl";
 import { deduplicateJobs } from "@/lib/dedup";
 
 /** Race a scraper call against a timeout — prevents a slow source from stalling the whole run. */
@@ -72,31 +71,16 @@ function createScrapers(): Scraper[] {
     new JobicyScraper(),
     new TheMuseScraper(),
     new AdzunaScraper(),     // auto-disables when ADZUNA_APP_ID / ADZUNA_API_KEY not set
-    // LinkedIn: Firecrawl → Apify → scrape.do
-    new FallbackScraper(
-      new FirecrawlJobScraper("site:linkedin.com/jobs"),
-      new FallbackScraper(new ApifyLinkedInScraper(), new LinkedInScraper()),
-    ),
-    // Indeed: Firecrawl → Apify → scrape.do
-    new FallbackScraper(
-      new FirecrawlJobScraper("site:indeed.com"),
-      new FallbackScraper(new ApifyIndeedScraper(), new IndeedScraper()),
-    ),
-    // Wellfound: Firecrawl → Apify
-    new FallbackScraper(
-      new FirecrawlJobScraper("site:wellfound.com"),
-      new ApifyWellfoundScraper(),
-    ),
-    // Naukri: Firecrawl → scrape.do
-    new FallbackScraper(
-      new FirecrawlJobScraper("site:naukri.com"),
-      new NaukriScraper(),
-    ),
-    // Internshala: Firecrawl → direct/scrape.do
-    new FallbackScraper(
-      new FirecrawlJobScraper("site:internshala.com"),
-      new IntershalaScraper(),
-    ),
+    // LinkedIn: Firecrawl (primary, internal) → scrape.do (fallback, internal) → Apify (external fallback)
+    new FallbackScraper(new LinkedInScraper(), new ApifyLinkedInScraper()),
+    // Indeed: Firecrawl (primary, internal) → scrape.do (fallback, internal) → Apify (external fallback)
+    new FallbackScraper(new IndeedScraper(), new ApifyIndeedScraper()),
+    // Wellfound: Apify only (no equivalent Firecrawl page to scrape)
+    new ApifyWellfoundScraper(),
+    // Naukri: Firecrawl (primary, internal) → scrape.do (fallback, internal)
+    new NaukriScraper(),
+    // Internshala: Firecrawl (primary, internal) → scrape.do → direct HTTP (all internal)
+    new IntershalaScraper(),
   ];
   return scrapers;
 }

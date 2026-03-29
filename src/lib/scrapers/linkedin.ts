@@ -6,6 +6,7 @@ import { RawJob, SearchConfigData } from "@/types";
 import { Scraper, ScraperResult } from "./types";
 import { passesGeoFilter } from "./geo-filter";
 import { scrapeDOFetch, isScrapeDOEnabled } from "./scrape-do";
+import { firecrawlFetch, isFirecrawlEnabled } from "./firecrawl";
 
 const LINKEDIN_JOBS_BASE = "https://www.linkedin.com/jobs/search/";
 const REQUEST_TIMEOUT_MS = 30000;
@@ -147,12 +148,14 @@ async function fetchLinkedInJobs(keyword: string, location: string): Promise<Par
   const url = `${LINKEDIN_JOBS_BASE}?${params.toString()}`;
   console.log(`[LinkedInScraper] Fetching: ${url}`);
 
-  const html = await scrapeDOFetch(url, {
-    geoCode: "in",
-    timeoutMs: REQUEST_TIMEOUT_MS,
-  });
-
-  console.log(`[LinkedInScraper] Received ${html.length} bytes for "${keyword}" @ ${location}`);
+  let html: string;
+  if (isFirecrawlEnabled()) {
+    html = await firecrawlFetch(url, { waitFor: 2000, timeoutMs: 45_000 });
+    console.log(`[LinkedInScraper] Firecrawl: ${html.length} bytes for "${keyword}" @ ${location}`);
+  } else {
+    html = await scrapeDOFetch(url, { geoCode: "in", timeoutMs: REQUEST_TIMEOUT_MS });
+    console.log(`[LinkedInScraper] scrape.do: ${html.length} bytes for "${keyword}" @ ${location}`);
+  }
 
   const jobs = parseJobCards(html);
   console.log(`[LinkedInScraper] Parsed ${jobs.length} jobs for "${keyword}" @ ${location}`);
@@ -166,7 +169,7 @@ export class LinkedInScraper implements Scraper {
   enabled: boolean;
 
   constructor() {
-    this.enabled = isScrapeDOEnabled();
+    this.enabled = isFirecrawlEnabled() || isScrapeDOEnabled();
   }
 
   async scrape(config: SearchConfigData): Promise<ScraperResult> {
@@ -176,7 +179,7 @@ export class LinkedInScraper implements Scraper {
     const seenUrls = new Set<string>();
 
     if (!this.enabled) {
-      return { jobs: [], errors: ["LinkedIn scraper disabled: SCRAPE_DO_TOKEN not set"], source: this.name, durationMs: 0 };
+      return { jobs: [], errors: ["LinkedIn scraper disabled: FIRECRAWL_API_KEY and SCRAPE_DO_TOKEN not set"], source: this.name, durationMs: 0 };
     }
 
     // Search top 2 titles × top 2 locations (4 requests max)

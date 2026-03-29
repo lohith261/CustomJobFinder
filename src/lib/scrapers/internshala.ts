@@ -4,6 +4,7 @@ import { RawJob, SearchConfigData } from "@/types";
 import { Scraper, ScraperResult } from "./types";
 import { passesGeoFilter } from "./geo-filter";
 import { scrapeDOFetch, isScrapeDOEnabled } from "./scrape-do";
+import { firecrawlFetch, isFirecrawlEnabled } from "./firecrawl";
 
 const INTERNSHALA_BASE_URL = "https://internshala.com/jobs";
 const REQUEST_TIMEOUT_MS = 15000;
@@ -455,7 +456,10 @@ async function fetchInternshalaPage(slug: string): Promise<ParsedJob[]> {
 
   let html: string;
 
-  if (isScrapeDOEnabled()) {
+  if (isFirecrawlEnabled()) {
+    html = await firecrawlFetch(url, { waitFor: 1000, timeoutMs: 45_000 });
+    console.log(`[IntershalaScraper] Firecrawl: ${html.length} bytes for slug "${slug}"`);
+  } else if (isScrapeDOEnabled()) {
     html = await scrapeDOFetch(url, { timeoutMs: 30000 });
   } else {
     const response = await fetch(url, {
