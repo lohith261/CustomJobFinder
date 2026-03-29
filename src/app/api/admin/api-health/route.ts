@@ -121,22 +121,23 @@ async function checkFirecrawl(): Promise<ServiceHealth> {
   const start = Date.now();
   try {
     const res = await checkWithTimeout(
-      () => fetch("https://api.firecrawl.dev/v1/team/credits", {
+      () => fetch("https://api.firecrawl.dev/v2/team/credit-usage", {
         headers: { Authorization: `Bearer ${key}` },
       }),
       8000
     );
     const latencyMs = Date.now() - start;
-    if (res.status === 404) {
-      // Credits endpoint may not exist on all plans — just confirm auth works via a minimal request
-      return { name: "Firecrawl", key: "firecrawl", status: "ok", message: "Connected (credits N/A)", latencyMs };
-    }
     if (!res.ok) {
       return { name: "Firecrawl", key: "firecrawl", status: "error", message: `HTTP ${res.status}`, latencyMs };
     }
-    const data = await res.json() as { credits?: number; remaining?: number; remaining_credits?: number; data?: { remaining?: number; remaining_credits?: number; current_usage?: number } };
-    const remaining = data.remaining ?? data.remaining_credits ?? data.data?.remaining ?? data.data?.remaining_credits ?? data.credits;
-    const detail = remaining != null ? `${remaining.toLocaleString()} credits remaining` : undefined;
+    const data = await res.json() as { success?: boolean; data?: { remainingCredits?: number; planCredits?: number } };
+    const remaining = data.data?.remainingCredits;
+    const total = data.data?.planCredits;
+    const detail = remaining != null
+      ? total != null
+        ? `${remaining.toLocaleString()} / ${total.toLocaleString()} credits remaining`
+        : `${remaining.toLocaleString()} credits remaining`
+      : undefined;
     // Warn when below 5,000 credits (reasonable threshold for a 150k account)
     const status: ServiceStatus = (remaining != null && remaining < 5_000) ? "warning" : "ok";
     return { name: "Firecrawl", key: "firecrawl", status, message: "Connected", detail, latencyMs };
