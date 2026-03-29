@@ -134,10 +134,11 @@ async function checkFirecrawl(): Promise<ServiceHealth> {
     if (!res.ok) {
       return { name: "Firecrawl", key: "firecrawl", status: "error", message: `HTTP ${res.status}`, latencyMs };
     }
-    const data = await res.json() as { credits?: number; remaining?: number };
-    const remaining = data.remaining ?? data.credits;
-    const detail = remaining != null ? `${remaining} credits remaining` : undefined;
-    const status: ServiceStatus = (remaining != null && remaining < 10) ? "warning" : "ok";
+    const data = await res.json() as { credits?: number; remaining?: number; remaining_credits?: number; data?: { remaining?: number; remaining_credits?: number; current_usage?: number } };
+    const remaining = data.remaining ?? data.remaining_credits ?? data.data?.remaining ?? data.data?.remaining_credits ?? data.credits;
+    const detail = remaining != null ? `${remaining.toLocaleString()} credits remaining` : undefined;
+    // Warn when below 5,000 credits (reasonable threshold for a 150k account)
+    const status: ServiceStatus = (remaining != null && remaining < 5_000) ? "warning" : "ok";
     return { name: "Firecrawl", key: "firecrawl", status, message: "Connected", detail, latencyMs };
   } catch (err) {
     return {

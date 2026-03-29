@@ -65,26 +65,38 @@ class FallbackScraper implements Scraper {
 /** All available scrapers. Add new scrapers here. */
 function createScrapers(): Scraper[] {
   const scrapers: Scraper[] = [
+    // Free public APIs — always enabled, no proxy needed
     new RemoteOKScraper(),
     new RemotiveScraper(),
     new ArbeitnowScraper(),
     new JobicyScraper(),
     new TheMuseScraper(),
     new AdzunaScraper(),     // auto-disables when ADZUNA_APP_ID / ADZUNA_API_KEY not set
-    new IntershalaScraper(), // no API key needed
-    new NaukriScraper(),     // auto-disables when SCRAPE_DO_TOKEN not set
-    // LinkedIn: Apify → scrape.do → Firecrawl (three-tier safety net)
+    // LinkedIn: Firecrawl → Apify → scrape.do
     new FallbackScraper(
-      new FallbackScraper(new ApifyLinkedInScraper(), new LinkedInScraper()),
       new FirecrawlJobScraper("site:linkedin.com/jobs"),
+      new FallbackScraper(new ApifyLinkedInScraper(), new LinkedInScraper()),
     ),
-    // Indeed: Apify → scrape.do → Firecrawl (three-tier safety net)
+    // Indeed: Firecrawl → Apify → scrape.do
     new FallbackScraper(
-      new FallbackScraper(new ApifyIndeedScraper(), new IndeedScraper()),
       new FirecrawlJobScraper("site:indeed.com"),
+      new FallbackScraper(new ApifyIndeedScraper(), new IndeedScraper()),
     ),
-    // Wellfound (AngelList) — auto-disables when APIFY_API_TOKEN not set
-    new ApifyWellfoundScraper(),
+    // Wellfound: Firecrawl → Apify
+    new FallbackScraper(
+      new FirecrawlJobScraper("site:wellfound.com"),
+      new ApifyWellfoundScraper(),
+    ),
+    // Naukri: Firecrawl → scrape.do
+    new FallbackScraper(
+      new FirecrawlJobScraper("site:naukri.com"),
+      new NaukriScraper(),
+    ),
+    // Internshala: Firecrawl → direct/scrape.do
+    new FallbackScraper(
+      new FirecrawlJobScraper("site:internshala.com"),
+      new IntershalaScraper(),
+    ),
   ];
   return scrapers;
 }

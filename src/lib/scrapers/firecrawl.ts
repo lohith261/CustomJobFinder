@@ -1,5 +1,6 @@
-// Firecrawl scraper — tertiary safety-net layer for job discovery.
-// Uses Firecrawl's search API to find job listings when Apify and scrape.do both fail.
+// Firecrawl scraper — primary scraping layer for job discovery.
+// Uses Firecrawl's search API as the first attempt for each job source.
+// Other scrapers (Apify, scrape.do) act as fallbacks when Firecrawl returns 0 jobs.
 // Auto-disables when FIRECRAWL_API_KEY is not set.
 // Docs: https://docs.firecrawl.dev/api-reference/endpoint/search
 
@@ -175,24 +176,45 @@ export class FirecrawlJobScraper implements Scraper {
     }
 
     try {
-      const keyword = config.titles.slice(0, 2).join(" OR ") || "Software Engineer";
+      const titles = config.titles.slice(0, 3);
       const location = config.locations[0] ?? "India";
-      const siteClause = this.siteFilter ? ` ${this.siteFilter}` : " (site:linkedin.com OR site:indeed.com OR site:wellfound.com)";
-      const query = `${keyword} jobs ${location}${siteClause}`;
+      const siteClause = this.siteFilter
+        ? ` ${this.siteFilter}`
+        : " (site:linkedin.com OR site:indeed.com OR site:wellfound.com)";
 
-      console.log(`[FirecrawlScraper] ${this.name}: query="${query}"`);
+      // Run one query per title in parallel for more targeted results
+      const queries = (titles.length > 0 ? titles : ["Software Engineer"]).map(
+        (title) => `${title} jobs ${location}${siteClause}`
+      );
 
-      const items = await searchFirecrawl(query, 20);
-      const jobs = items
-        .flatMap((item) => {
+      console.log(`[FirecrawlScraper] ${this.name}: running ${queries.length} parallel queries`);
+
+      const settled = await Promise.allSettled(
+        queries.map((q) => searchFirecrawl(q, 25))
+      );
+
+      const seenUrls = new Set<string>();
+      const errors: string[] = [];
+      const jobs: RawJob[] = [];
+
+      for (const result of settled) {
+        if (result.status === "rejected") {
+          const msg = result.reason instanceof Error ? result.reason.message : String(result.reason);
+          errors.push(msg);
+          continue;
+        }
+        for (const item of result.value) {
           const job = mapSearchItem(item, this.name);
-          return job ? [job] : [];
-        })
-        .filter((job) => !config.blacklistedCompanies
-          .some((c) => c.toLowerCase() === job.company.toLowerCase()));
+          if (!job) continue;
+          if (seenUrls.has(job.url)) continue;
+          if (config.blacklistedCompanies.some((c) => c.toLowerCase() === job.company.toLowerCase())) continue;
+          seenUrls.add(job.url);
+          jobs.push(job);
+        }
+      }
 
-      console.log(`[FirecrawlScraper] ${this.name}: ${items.length} results → ${jobs.length} valid jobs`);
-      return { jobs, errors: [], source: this.name, durationMs: Date.now() - start };
+      console.log(`[FirecrawlScraper] ${this.name}: ${jobs.length} unique jobs across ${queries.length} queries`);
+      return { jobs, errors, source: this.name, durationMs: Date.now() - start };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`[FirecrawlScraper] ${this.name} error:`, msg);
