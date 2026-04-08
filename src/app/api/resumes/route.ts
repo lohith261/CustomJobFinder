@@ -4,6 +4,21 @@ import { parsePdf } from "@/lib/parsers/pdf";
 import { parseDocx } from "@/lib/parsers/docx";
 import { parseTxt } from "@/lib/parsers/txt";
 import { getRequiredUserId } from "@/lib/auth-helpers";
+import { getEmbedding, serializeEmbedding, buildResumeEmbedText } from "@/lib/ai/embed";
+
+/** Fire-and-forget: embed a resume and persist to DB. Errors are swallowed. */
+function embedResumeAsync(resumeId: string, textContent: string): void {
+  getEmbedding(buildResumeEmbedText(textContent))
+    .then((embedding) =>
+      prisma.resume.update({
+        where: { id: resumeId },
+        data: { resumeEmbedding: serializeEmbedding(embedding), resumeEmbeddedAt: new Date() },
+      })
+    )
+    .catch(() => {
+      // Non-critical — embedding will be attempted next pipeline run
+    });
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -134,6 +149,8 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      embedResumeAsync(resume.id, rawText);
+
       return NextResponse.json({
         id: resume.id,
         name: resume.name,
@@ -212,6 +229,8 @@ export async function POST(req: NextRequest) {
         isPrimary: false,
       },
     });
+
+    embedResumeAsync(resume.id, text);
 
     return NextResponse.json({
       id: resume.id,

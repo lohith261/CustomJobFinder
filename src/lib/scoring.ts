@@ -5,6 +5,7 @@ import type {
   RawJob,
   SearchConfigData,
 } from "@/types";
+import { cosineSimilarity, type Embedding } from "@/lib/ai/embed";
 
 const WEIGHTS = {
   title: 25,
@@ -590,4 +591,32 @@ export function calculatePriorityInsights(
       effortScore <= 35 ? "Low Effort" : effortScore <= 65 ? "Medium Effort" : "High Effort",
     reason,
   };
+}
+
+// ── Semantic scoring helpers ──────────────────────────────────────────────────
+
+/**
+ * Returns a semantic similarity score (0–100) between a job and a resume.
+ * Both embeddings must be from the same model (text-embedding-3-small).
+ */
+export function calculateSemanticScore(
+  jobEmbedding: Embedding,
+  resumeEmbedding: Embedding
+): number {
+  const sim = cosineSimilarity(jobEmbedding, resumeEmbedding);
+  return Math.min(100, Math.max(0, Math.round(sim * 100)));
+}
+
+/**
+ * Blended score: 40% keyword-based + 60% semantic similarity.
+ * Falls back to keywordScore alone if either embedding is unavailable.
+ */
+export function calculateBlendedScore(
+  keywordScore: number,
+  jobEmbedding: Embedding | null,
+  resumeEmbedding: Embedding | null
+): number {
+  if (!jobEmbedding || !resumeEmbedding) return keywordScore;
+  const semScore = calculateSemanticScore(jobEmbedding, resumeEmbedding);
+  return Math.min(100, Math.max(0, Math.round(0.4 * keywordScore + 0.6 * semScore)));
 }

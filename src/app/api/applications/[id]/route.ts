@@ -49,6 +49,10 @@ export async function PATCH(
       recruiterName,
       recruiterEmail,
       recruiterLinkedIn,
+      // Outcome signals
+      outcome,
+      outcomeAt,
+      interviewCount,
     } = body;
     const rest = { notes, recruiterName, recruiterEmail, recruiterLinkedIn };
 
@@ -115,6 +119,19 @@ export async function PATCH(
       }))];
     }
 
+    // Capture outcome timeline event
+    const VALID_OUTCOMES = ["hired", "rejected", "ghosted", "withdrawn"];
+    if (outcome && VALID_OUTCOMES.includes(outcome) && outcome !== app.outcome) {
+      const outcomeLabels: Record<string, string> = {
+        hired: "Hired", rejected: "Rejected by company", ghosted: "No response (ghosted)", withdrawn: "Withdrawn by candidate",
+      };
+      updatedTimeline = [...updatedTimeline, {
+        id: randomUUID(), type: "status_change" as const,
+        description: `Outcome recorded: ${outcomeLabels[outcome] ?? outcome}`,
+        timestamp: new Date().toISOString(),
+      }];
+    }
+
     // Build update payload from the explicit allowlist only
     const updateData: Record<string, unknown> = { timeline: JSON.stringify(updatedTimeline) };
     if (notes !== undefined) updateData.notes = notes;
@@ -127,6 +144,14 @@ export async function PATCH(
     }
     if (followUpDate !== undefined || (status === "applied" && !app.followUpDate)) {
       updateData.followUpDate = effectiveFollowUpDate;
+    }
+    // Outcome fields
+    if (outcome !== undefined && VALID_OUTCOMES.includes(outcome)) {
+      updateData.outcome = outcome;
+      updateData.outcomeAt = outcomeAt ? new Date(outcomeAt) : new Date();
+    }
+    if (interviewCount !== undefined && typeof interviewCount === "number") {
+      updateData.interviewCount = interviewCount;
     }
 
     // updateMany supports relation filters — prevents writing to rows we don't own even in a race

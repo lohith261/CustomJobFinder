@@ -63,6 +63,9 @@ model Job {
   postedAt        DateTime?
   scrapedAt       DateTime     @default(now())
   matchScore      Int          @default(0)
+  semanticScore   Int?
+  jobEmbedding    String?      // JSON-serialised float[] from text-embedding-3-small
+  embeddedAt      DateTime?
   status          String       @default("new")
   companyInfoId   String?
   companyInfo     CompanyInfo? @relation(fields: [companyInfoId], references: [id])
@@ -88,11 +91,13 @@ model Resume {
   fileName        String
   textContent     String
   format          String
-  isPrimary       Boolean          @default(false)
-  wordCount       Int              @default(0)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  analyses        ResumeAnalysis[]
+  isPrimary          Boolean          @default(false)
+  wordCount          Int              @default(0)
+  resumeEmbedding    String?          // JSON-serialised float[] from text-embedding-3-small
+  resumeEmbeddedAt   DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  analyses           ResumeAnalysis[]
   coverLetters    CoverLetter[]
   tailoredResumes TailoredResume[]
 
@@ -158,10 +163,15 @@ model Application {
   followUpDate      DateTime?
   appliedAt         DateTime?
   timeline          String    @default("[]")
+  // Outcome signals for feedback loop / score recalibration
+  outcome           String?   // "hired" | "rejected" | "ghosted" | "withdrawn"
+  outcomeAt         DateTime?
+  interviewCount    Int       @default(0)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
   @@index([status])
+  @@index([outcome])
 }
 
 model CoverLetter {

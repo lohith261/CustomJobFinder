@@ -1,11 +1,10 @@
-// Apify scraper — runs cloud actors for LinkedIn, Indeed, and Naukri job scraping.
+// Apify scraper — runs cloud actors for LinkedIn, Indeed, and Wellfound job scraping.
+// Uses the official apify-client SDK for typed, structured API access.
 // Auto-disables when APIFY_API_TOKEN is not set.
-// Docs: https://docs.apify.com/api/v2
 
+import { ApifyClient } from "apify-client";
 import { RawJob, SearchConfigData } from "@/types";
 import { Scraper, ScraperResult } from "./types";
-
-const APIFY_BASE = "https://api.apify.com/v2";
 
 // ─── Actor IDs ────────────────────────────────────────────────────────────────
 
@@ -13,10 +12,20 @@ const ACTORS = {
   linkedin:  "valig/linkedin-jobs-scraper",
   indeed:    "valig/indeed-jobs-scraper",
   wellfound: "adriano-rego/wellfound-jobs-scraper",
-  // naukri requires a paid Apify subscription — disabled
 } as const;
 
-type ApifySource = keyof typeof ACTORS;
+// ─── Lazy client singleton ────────────────────────────────────────────────────
+
+let _client: ApifyClient | null = null;
+
+function getClient(): ApifyClient {
+  if (!_client) {
+    const token = process.env.APIFY_API_TOKEN;
+    if (!token) throw new Error("APIFY_API_TOKEN not set");
+    _client = new ApifyClient({ token });
+  }
+  return _client;
+}
 
 // ─── Raw output types ─────────────────────────────────────────────────────────
 
@@ -24,71 +33,67 @@ interface ApifyLinkedInJob {
   title?: string;
   companyName?: string;
   location?: string;
-  url?: string;        // actual field name from valig/linkedin-jobs-scraper
-  jobUrl?: string;     // fallback alias
+  url?: string;
+  jobUrl?: string;
   description?: string;
   descriptionHtml?: string;
   jobDescription?: string;
-  postedDate?: string; // actual field name
-  postedAt?: string;   // fallback alias
+  postedDate?: string;
+  postedAt?: string;
   date?: string;
-  salary?: string;
-  contractType?: string;
-  workType?: string;   // e.g. "Remote", "Hybrid"
+  workType?: string;
   experienceLevel?: string;
   isRemote?: boolean;
 }
 
-// valig/indeed-jobs-scraper output shape
 interface ApifyIndeedJob {
   title?: string;
-  url?: string;          // indeed.com/viewjob?jk=... link
-  jobUrl?: string;       // direct employer URL (may differ)
-  location?: { city?: string; admin1Code?: string; countryName?: string; countryCode?: string } | string;
-  employer?: { name?: string; companyPageUrl?: string };
+  url?: string;
+  jobUrl?: string;
+  location?: { city?: string; admin1Code?: string; countryName?: string } | string;
+  employer?: { name?: string };
   description?: string;
   datePublished?: string;
   dateOnIndeed?: string;
-  baseSalary?: { min?: number; max?: number; currency?: string; unitText?: string } | null;
+  baseSalary?: { min?: number; max?: number; currency?: string } | null;
   jobTypes?: string[];
 }
 
-// ─── API client ───────────────────────────────────────────────────────────────
+interface ApifyWellfoundJob {
+  title?: string;
+  company?: string;
+  companyName?: string;
+  location?: string;
+  remote?: boolean;
+  url?: string;
+  jobUrl?: string;
+  description?: string;
+  postedAt?: string;
+  createdAt?: string;
+  salary?: string;
+  experienceLevel?: string;
+  skills?: string[];
+}
 
-async function runActorSync(
+// ─── SDK-based actor runner ───────────────────────────────────────────────────
+
+async function runActorSync<T>(
   actorId: string,
   input: Record<string, unknown>,
-  timeoutSec = 180
-): Promise<unknown[]> {
-  const token = process.env.APIFY_API_TOKEN;
-  if (!token) throw new Error("APIFY_API_TOKEN not set");
-
-  // run-sync-get-dataset-items: starts actor, waits, returns dataset items directly
-  const url = `${APIFY_BASE}/acts/${encodeURIComponent(actorId)}/run-sync-get-dataset-items?token=${token}&timeout=${timeoutSec}`;
+  timeoutSecs = 180
+): Promise<T[]> {
+  const client = getClient();
 
   console.log(`[ApifyScraper] Starting actor ${actorId}`);
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-    signal: AbortSignal.timeout((timeoutSec + 10) * 1000),
-  });
+  const run = await client.actor(actorId).call(input, { timeout: timeoutSecs });
 
-  if (res.status === 408) {
-    throw new Error(`Actor ${actorId} timed out after ${timeoutSec}s`);
-  }
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Apify error ${res.status} for ${actorId}: ${body.slice(0, 200)}`);
-  }
-
-  const data = await res.json() as unknown[];
-  console.log(`[ApifyScraper] Actor ${actorId} returned ${data.length} items`);
-  return data;
+  const { items } = await client.dataset(run.defaultDatasetId).listItems();
+  console.log(`[ApifyScraper] Actor ${actorId} returned ${items.length} items`);
+  return items as T[];
 }
 
-// ─── Mappers ──────────────────────────────────────────────────────────────────
+// ─── Utility helpers ──────────────────────────────────────────────────────────
 
 function parseSalaryINR(salary: unknown): { min?: number; max?: number } {
   if (!salary) return {};
@@ -119,9 +124,10 @@ function inferExperienceLevel(level?: string, title?: string): string {
   if (t.includes("principal") || t.includes("staff ") || t.includes("director")) return "lead";
   if (t.includes("lead") || t.includes("head")) return "lead";
   if (t.includes("senior") || t.includes("sr ")) return "senior";
-  if (t.includes("mid") || t.includes("mid-level")) return "mid";
   return "mid";
 }
+
+// ─── Mappers ──────────────────────────────────────────────────────────────────
 
 function mapLinkedInJob(item: ApifyLinkedInJob, source: string): RawJob | null {
   const title = item.title?.trim();
@@ -140,7 +146,13 @@ function mapLinkedInJob(item: ApifyLinkedInJob, source: string): RawJob | null {
     source,
     description: item.description ?? item.descriptionHtml ?? item.jobDescription ?? undefined,
     experienceLevel: inferExperienceLevel(item.experienceLevel, title),
-    postedAt: item.postedDate ? new Date(item.postedDate) : item.postedAt ? new Date(item.postedAt) : item.date ? new Date(item.date) : undefined,
+    postedAt: item.postedDate
+      ? new Date(item.postedDate)
+      : item.postedAt
+        ? new Date(item.postedAt)
+        : item.date
+          ? new Date(item.date)
+          : undefined,
   };
 }
 
@@ -172,43 +184,42 @@ function mapIndeedJob(item: ApifyIndeedJob, source: string): RawJob | null {
     salaryMax: salary.max,
     salaryCurrency: salary.min ? "INR" : undefined,
     experienceLevel: inferExperienceLevel(undefined, title),
-    postedAt: item.datePublished ? new Date(item.datePublished) : item.dateOnIndeed ? new Date(item.dateOnIndeed) : undefined,
+    postedAt: item.datePublished
+      ? new Date(item.datePublished)
+      : item.dateOnIndeed
+        ? new Date(item.dateOnIndeed)
+        : undefined,
   };
 }
 
-// ─── Per-source fetch functions ───────────────────────────────────────────────
+function mapWellfoundJob(item: ApifyWellfoundJob, source: string): RawJob | null {
+  const title = item.title?.trim();
+  const company = (item.company ?? item.companyName)?.trim();
+  const url = (item.url ?? item.jobUrl)?.trim();
+  if (!title || !company || !url) return null;
 
-async function fetchLinkedIn(config: SearchConfigData): Promise<RawJob[]> {
-  const keyword = config.titles.slice(0, 2).join(" OR ") || "Software Engineer";
-  const location = config.locations[0] ?? "India";
+  const locationStr = item.location ?? (item.remote ? "Remote" : "");
+  const salary = parseSalaryINR(item.salary);
 
-  const items = await runActorSync(ACTORS.linkedin, {
-    searchKeywords: keyword,
-    location, // singular string — actor uses this for geo filtering
-    maxResults: 25,
-    fetchFullDescription: false,
-  }) as ApifyLinkedInJob[];
-
-  return items.flatMap((item) => {
-    const job = mapLinkedInJob(item, "apify-linkedin");
-    return job ? [job] : [];
-  });
-}
-
-async function fetchIndeed(config: SearchConfigData): Promise<RawJob[]> {
-  const query = config.titles[0] ?? "Software Engineer";
-  const location = config.locations[0] ?? "India";
-  const items = await runActorSync(ACTORS.indeed, {
-    searchQuery: query,
-    location,
-    country: "in",
-    maxResults: 25,
-  }) as ApifyIndeedJob[];
-
-  return items.flatMap((item) => {
-    const job = mapIndeedJob(item, "apify-indeed");
-    return job ? [job] : [];
-  });
+  return {
+    title,
+    company,
+    location: locationStr || "Remote",
+    locationType: inferLocationType(locationStr, item.remote),
+    url,
+    source,
+    description: item.description ?? undefined,
+    salaryMin: salary.min,
+    salaryMax: salary.max,
+    salaryCurrency: salary.min ? "USD" : undefined,
+    experienceLevel: inferExperienceLevel(item.experienceLevel, title),
+    tags: Array.isArray(item.skills) ? item.skills : undefined,
+    postedAt: item.postedAt
+      ? new Date(item.postedAt)
+      : item.createdAt
+        ? new Date(item.createdAt)
+        : undefined,
+  };
 }
 
 // ─── Config filter ────────────────────────────────────────────────────────────
@@ -236,57 +247,49 @@ function matchesConfig(job: RawJob, config: SearchConfigData): boolean {
   return true;
 }
 
-// adriano-rego/wellfound-jobs-scraper output shape
-interface ApifyWellfoundJob {
-  title?: string;
-  company?: string;           // company name (top-level field)
-  companyName?: string;       // alias used by some actor versions
-  location?: string;
-  remote?: boolean;
-  url?: string;
-  jobUrl?: string;
-  description?: string;
-  postedAt?: string;
-  createdAt?: string;
-  salary?: string;
-  jobType?: string;
-  experienceLevel?: string;
-  skills?: string[];
+// ─── Per-source fetch functions ───────────────────────────────────────────────
+
+async function fetchLinkedIn(config: SearchConfigData): Promise<RawJob[]> {
+  const keyword = config.titles.slice(0, 2).join(" OR ") || "Software Engineer";
+  const location = config.locations[0] ?? "India";
+
+  const items = await runActorSync<ApifyLinkedInJob>(ACTORS.linkedin, {
+    searchKeywords: keyword,
+    location,
+    maxResults: 25,
+    fetchFullDescription: false,
+  });
+
+  return items.flatMap((item) => {
+    const job = mapLinkedInJob(item, "apify-linkedin");
+    return job ? [job] : [];
+  });
 }
 
-function mapWellfoundJob(item: ApifyWellfoundJob, source: string): RawJob | null {
-  const title = item.title?.trim();
-  const company = (item.company ?? item.companyName)?.trim();
-  const url = (item.url ?? item.jobUrl)?.trim();
-  if (!title || !company || !url) return null;
+async function fetchIndeed(config: SearchConfigData): Promise<RawJob[]> {
+  const query = config.titles[0] ?? "Software Engineer";
+  const location = config.locations[0] ?? "India";
 
-  const locationStr = item.location ?? (item.remote ? "Remote" : "");
-  const salary = parseSalaryINR(item.salary);
+  const items = await runActorSync<ApifyIndeedJob>(ACTORS.indeed, {
+    searchQuery: query,
+    location,
+    country: "in",
+    maxResults: 25,
+  });
 
-  return {
-    title,
-    company,
-    location: locationStr || "Remote",
-    locationType: inferLocationType(locationStr, item.remote),
-    url,
-    source,
-    description: item.description ?? undefined,
-    salaryMin: salary.min,
-    salaryMax: salary.max,
-    salaryCurrency: salary.min ? "USD" : undefined,
-    experienceLevel: inferExperienceLevel(item.experienceLevel, title),
-    tags: Array.isArray(item.skills) ? item.skills : undefined,
-    postedAt: item.postedAt ? new Date(item.postedAt) : item.createdAt ? new Date(item.createdAt) : undefined,
-  };
+  return items.flatMap((item) => {
+    const job = mapIndeedJob(item, "apify-indeed");
+    return job ? [job] : [];
+  });
 }
 
 async function fetchWellfound(config: SearchConfigData): Promise<RawJob[]> {
   const keyword = config.titles[0] ?? "Software Engineer";
 
-  const items = await runActorSync(ACTORS.wellfound, {
+  const items = await runActorSync<ApifyWellfoundJob>(ACTORS.wellfound, {
     searchQuery: keyword,
-    maxResults: 100, // free tier limit
-  }) as ApifyWellfoundJob[];
+    maxResults: 100,
+  });
 
   return items.flatMap((item) => {
     const job = mapWellfoundJob(item, "apify-wellfound");
@@ -340,4 +343,3 @@ export class ApifyIndeedScraper extends ApifyBaseScraper {
 export class ApifyWellfoundScraper extends ApifyBaseScraper {
   constructor() { super("apify-wellfound", fetchWellfound); }
 }
-

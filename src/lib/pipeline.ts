@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { runAllScrapers, filterSeenUrls, markUrlsSeen } from "@/lib/scrapers";
-import { calculateMatchScore } from "@/lib/scoring";
+import { calculateMatchScore, calculateBlendedScore } from "@/lib/scoring";
 import { toJsonArray, fromJsonArray } from "@/lib/json-arrays";
 import { getActiveSearchConfig } from "@/lib/search-config";
 import { analyzeTailor } from "@/lib/ai/tailor";
@@ -9,6 +9,16 @@ import { generateCoverLetter } from "@/lib/ai/cover-letter";
 import { generateTailoredResume } from "@/lib/ai/resume-generator";
 import { isCancellationRequested, clearCancellation } from "@/lib/pipeline-cancel";
 import { sendTelegramMessage } from "@/lib/telegram";
+import {
+  getEmbedding,
+  serializeEmbedding,
+  deserializeEmbedding,
+  buildJobEmbedText,
+  type Embedding,
+} from "@/lib/ai/embed";
+import pLimit from "p-limit";
+
+const LLM_CONCURRENCY = 3; // max simultaneous OpenRouter calls
 
 export interface PipelineOptions {
   userId: string;
@@ -78,6 +88,24 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineRun
     let scrapeCount = 0;
     let newJobsCount = 0;
 
+    // Fetch resume embedding once — used for blended scoring on all new jobs
+    let resumeEmbedding: Embedding | null = null;
+    try {
+      const resumeForEmbed = await prisma.resume.findFirst({
+        where: { userId, isPrimary: true },
+        select: { resumeEmbedding: true },
+      }) ?? await prisma.resume.findFirst({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        select: { resumeEmbedding: true },
+      });
+      if (resumeForEmbed?.resumeEmbedding) {
+        resumeEmbedding = deserializeEmbedding(resumeForEmbed.resumeEmbedding);
+      }
+    } catch {
+      // Non-critical — falls back to keyword-only scoring
+    }
+
     try {
       const searchConfig = await getActiveSearchConfig(userId);
       const result = await runAllScrapers(searchConfig);
@@ -92,11 +120,44 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineRun
       await markUrlsSeen([...newUrls]);
 
       for (const job of freshJobs) {
-        const score = calculateMatchScore(job, searchConfig);
+        const keywordScore = calculateMatchScore(job, searchConfig);
+
+        // Embed job and compute blended score if resume embedding is available
+        let jobEmbedding: Embedding | null = null;
+        let finalScore = keywordScore;
+        let semanticScoreValue: number | undefined;
+        try {
+          const embedText = buildJobEmbedText({
+            title: job.title,
+            description: job.description,
+            tags: job.tags,
+            company: job.company,
+          });
+          jobEmbedding = await getEmbedding(embedText);
+          if (resumeEmbedding) {
+            finalScore = calculateBlendedScore(keywordScore, jobEmbedding, resumeEmbedding);
+            // Store semantic score separately (0–100 from cosine sim)
+            const { calculateSemanticScore } = await import("@/lib/scoring");
+            semanticScoreValue = calculateSemanticScore(jobEmbedding, resumeEmbedding);
+          }
+        } catch {
+          // Non-critical — fall back to keyword score only
+        }
+
         try {
           const upserted = await prisma.job.upsert({
             where: { title_company_source_userId: { title: job.title, company: job.company, source: job.source, userId } },
-            update: { description: job.description, salaryMin: job.salaryMin, salaryMax: job.salaryMax, matchScore: score },
+            update: {
+              description: job.description,
+              salaryMin: job.salaryMin,
+              salaryMax: job.salaryMax,
+              matchScore: finalScore,
+              ...(jobEmbedding && {
+                jobEmbedding: serializeEmbedding(jobEmbedding),
+                embeddedAt: new Date(),
+                ...(semanticScoreValue !== undefined && { semanticScore: semanticScoreValue }),
+              }),
+            },
             create: {
               userId,
               title: job.title, company: job.company, location: job.location,
@@ -105,7 +166,12 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineRun
               salaryCurrency: job.salaryCurrency, experienceLevel: job.experienceLevel,
               companySize: job.companySize, industry: job.industry,
               tags: toJsonArray(job.tags || []), postedAt: job.postedAt,
-              matchScore: score, status: "new",
+              matchScore: finalScore, status: "new",
+              ...(jobEmbedding && {
+                jobEmbedding: serializeEmbedding(jobEmbedding),
+                embeddedAt: new Date(),
+                ...(semanticScoreValue !== undefined && { semanticScore: semanticScoreValue }),
+              }),
             },
           });
           if (upserted) newJobsCount++;
@@ -189,8 +255,9 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineRun
     }
 
     // ─── STEP D + D2: Analyse jobs and generate tailored resumes (combined parallel pass) ──
+    const llmLimit = pLimit(LLM_CONCURRENCY);
     const combinedResults = await Promise.allSettled(
-      candidates.map(async (job) => {
+      candidates.map((job) => llmLimit(async () => {
         const tags = fromJsonArray(job.tags);
         const [analysis, tailoredData] = await Promise.all([
           analyzeTailor({
@@ -247,7 +314,7 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineRun
         });
 
         return job;
-      })
+      }))
     );
 
     const successfullyAnalysed = combinedResults
@@ -275,7 +342,7 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineRun
 
     // ─── STEP E: Generate cover letters ──────────────────────────────────────
     const coverLetterResults = await Promise.allSettled(
-      successfullyAnalysed.map(async (job) => {
+      successfullyAnalysed.map((job) => llmLimit(async () => {
         const content = await generateCoverLetter({
           resumeText: resume.textContent,
           jobTitle: job.title,
@@ -291,7 +358,7 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineRun
         });
 
         return job;
-      })
+      }))
     );
 
     const successfullyCoverLettered = coverLetterResults
